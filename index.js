@@ -1,6 +1,6 @@
 import express from 'express'
 import userRoutes from './src/routes/userRoutes'
-import mongoose from 'mongoose'
+import mongoose, {Schema} from 'mongoose'
 import bodyParser from 'body-parser'
 
 const app = express()
@@ -28,7 +28,7 @@ mongoose.connection.on('error', (error) => {
     console.log('ERROR: ' + error)
 })
 
-mongoose.connect('mongodb://root:example@localhost:27017/users', {
+mongoose.connect('mongodb://root:example@localhost/users?authSource=admin', {
     useNewUrlParser: true,
     useUnifiedTopology: true
 })

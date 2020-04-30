@@ -12,7 +12,7 @@ services:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: example
     volumes:
-      - ./mongodbdata:/data/db
+      - mongodata:/data/db
     #command: mongod --auth
 
   mongo-express:
@@ -25,4 +25,4 @@ services:
       ME_CONFIG_MONGODB_ADMINPASSWORD: example
 
 volumes:
-  mongodbdata:
+  mongodata:

@@ -1,3 +1,5 @@
+import {addUser} from '../controllers/userController'
+
 const routes = (app) => {
     app.route('/users')
         .get((req, res, next) => {
@@ -8,7 +10,7 @@ const routes = (app) => {
 
         }, (req, res) => res.send('GET OK'))
 
-        .post((req, res) => res.send('POST OK'))
+        .post(addUser)
 
     app.route('/users/:userID')
         .put((req, res) => res.send('PUT OK'))
