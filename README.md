@@ -2,7 +2,7 @@
 A simple API sample made in Node.js, Express, and MongoDb to be used as a base case to other cases.
 
 ## Agenda
-- [ ] Simple CRUD operations for Users REST API using Express and Mongoose
+- [x] Simple CRUD operations for Users REST API using Express and Mongoose
 - [ ] Secure the API (Authentication and Authorization concerns)
 - [ ] Research and apply good practices on top of a NodeJS Express API 
 - [ ] Apply some resilience layer on top of database connection (maybe using some sort of circuit breaker)

@@ -38,6 +38,9 @@ app.use(bodyParser.json())
 
 userRoutes(app)//todo: it sounds like not a good practice, research about it (probably I should be a centralized route module
 
+// serving static files
+app.use(express.static('public'))
+
 app.get('/', (req, res) =>
     res.send(`Express running on port ${PORT}`)
 )
