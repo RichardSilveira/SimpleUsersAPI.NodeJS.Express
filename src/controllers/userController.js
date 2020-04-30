@@ -14,3 +14,42 @@ export const addUser = (req, res) => {
     })
 }
 
+export const getUser = (req, res) => {
+    User.find({}, (err, user) => {
+        if (err)
+            res.send(err)
+
+        res.json(user)
+    })
+}
+
+export const getUserByID = (req, res) => {
+    User.findById(req.params.userID, (err, user) => {
+        if (err)
+            res.json(err)
+
+        res.json(user)
+    })
+}
+
+export const updateUser = (req, res) => {
+    User.findOneAndUpdate({_id: req.params.userID}, req.body, {new: true, useFindAndModify: false},
+        (err, user) => {
+            if (err)
+                res.send(err)
+
+            res.json(user)
+        })
+}
+
+export const deleteUser = (req, res) => {
+    User.remove({_id: req.params.userID}, (err, user) => {
+        if (err)
+            res.send(err)
+
+        res.json({message: 'User successfuly deleted'})
+    })
+}
+
+
+

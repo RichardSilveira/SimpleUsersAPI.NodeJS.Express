@@ -13,7 +13,6 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: example
     volumes:
       - mongodata:/data/db
-    #command: mongod --auth
 
   mongo-express:
     image: mongo-express:latest
