@@ -1,7 +1,11 @@
 import express from 'express'
 import routes from './src/routes/routes'
-import mongoose, {Schema} from 'mongoose'
+import mongoose from 'mongoose'
 import bodyParser from 'body-parser'
+import jsonwebtoken from 'jsonwebtoken';
+import dotenv from 'dotenv-safe'
+
+dotenv.config()
 
 const app = express()
 const PORT = 4000
@@ -35,6 +39,23 @@ mongoose.connect('mongodb://root:example@localhost/users?authSource=admin', {
 
 app.use(bodyParser.urlencoded({extended: true}))
 app.use(bodyParser.json())
+
+// JWT Header setup
+app.use((req, res, next) => {
+    if (req.headers && req.headers.authorization && req.headers.authorization.split(' ')[0] === 'JWT') {
+        jsonwebtoken.verify(req.headers.authorization.split(' ')[1], process.env.AUTH_SECRET, (err, decode) => {
+            if (err) req.user = undefined;
+            req.user = decode;
+            console.log(`Authenticated user ${req.user}`)
+        });
+    } else {
+        req.user = undefined;
+        console.log('Anonymous user')
+    }
+
+    next();
+
+});
 
 routes(app)
 
