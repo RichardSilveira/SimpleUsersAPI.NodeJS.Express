@@ -3,7 +3,7 @@ A simple API sample made in Node.js, Express, and MongoDb to be used as a base c
 
 ## Agenda
 - [x] Simple CRUD operations for Users REST API using Express and Mongoose
-- [ ] Secure the API (Authentication and Authorization concerns)
+- [x] Secure the API (Authentication and Authorization concerns)
 - [ ] Research and apply good practices on top of a NodeJS Express API 
 - [ ] Apply some resilience layer on top of database connection (maybe using some sort of circuit breaker)
 - [ ] (Optional) Create a UI for the API before the migration to AWS to test some integrations in a real-world scenario, (eg. CORS, Firebase Authentication)

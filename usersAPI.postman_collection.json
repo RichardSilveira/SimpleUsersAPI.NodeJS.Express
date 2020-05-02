@@ -39,7 +39,13 @@
 			"name": "localhost:4000/users",
 			"request": {
 				"method": "GET",
-				"header": [],
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "JWT eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1ZWFkZWY3YmU2Y2Q2NDMyMzhjNWEzNWUiLCJlbWFpbCI6ImFiY0BnbWFpbC5jb20iLCJ1c2VybmFtZSI6InJpY2hhcmQiLCJpYXQiOjE1ODg0NTg2NDIsImV4cCI6MTU4ODQ1ODk0Mn0.WcPhtojhCg3kUcyEP6hjSWXVXrhkQ9mZg_Cd1u5P5nk",
+						"type": "text"
+					}
+				],
 				"url": {
 					"raw": "localhost:4000/users",
 					"host": [
@@ -114,6 +120,65 @@
 					"path": [
 						"users",
 						"5eab2ca849e7eb4290580733"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "localhost:4000/auth/register",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"userName\":\"richard\",\n\t\"email\":\"abc@gmail.com\",\n\t\"password\":\"test123\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:4000/auth/register",
+					"host": [
+						"localhost"
+					],
+					"port": "4000",
+					"path": [
+						"auth",
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "localhost:4000/auth/login",
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {}
+			},
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"email\":\"abc@gmail.com\",\n\t\"password\":\"test123\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:4000/auth/login",
+					"host": [
+						"localhost"
+					],
+					"port": "4000",
+					"path": [
+						"auth",
+						"login"
 					]
 				}
 			},
