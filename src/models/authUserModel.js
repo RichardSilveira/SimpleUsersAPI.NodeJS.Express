@@ -21,3 +21,5 @@ export const AuthUserSchema = new Schema({
         default: Date.now
     }
 })
+
+AuthUserSchema.methods.comparePassword = (password, hashPassword) => bcrypt.compareSync(password, hashPassword)
