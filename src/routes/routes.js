@@ -1,4 +1,5 @@
 import {getUser, getUserByID, addUser, updateUser, deleteUser} from '../controllers/userController'
+import {loginRequired} from '../controllers/authController'
 
 const routes = (app) => {
     app.route('/users')
@@ -8,7 +9,7 @@ const routes = (app) => {
             console.log(`request info: ${req.method}, ${req.originalUrl}`)
             next()
 
-        }, getUser)
+        }, loginRequired, getUser)
 
         .post(addUser)
 
