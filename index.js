@@ -1,5 +1,5 @@
 import express from 'express'
-import userRoutes from './src/routes/userRoutes'
+import routes from './src/routes/routes'
 import mongoose, {Schema} from 'mongoose'
 import bodyParser from 'body-parser'
 
@@ -36,7 +36,7 @@ mongoose.connect('mongodb://root:example@localhost/users?authSource=admin', {
 app.use(bodyParser.urlencoded({extended: true}))
 app.use(bodyParser.json())
 
-userRoutes(app)//todo: it sounds like not a good practice, research about it (probably I should be a centralized route module
+routes(app)
 
 // serving static files
 app.use(express.static('public'))
