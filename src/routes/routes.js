@@ -1,7 +1,9 @@
 import {getUser, getUserByID, addUser, updateUser, deleteUser} from '../controllers/userController'
-import {loginRequired} from '../controllers/authController'
+import {login, loginRequired, register} from '../controllers/authController'
 
 const routes = (app) => {
+
+    // User routes
     app.route('/users')
         .get((req, res, next) => {
             // fun with middlewares (play a little with it later)
@@ -11,12 +13,19 @@ const routes = (app) => {
 
         }, loginRequired, getUser)
 
-        .post(addUser)
+        .post(loginRequired, addUser)
 
     app.route('/users/:userID')
-        .get(getUserByID)
-        .put(updateUser)
-        .delete(deleteUser)
+        .get(loginRequired, getUserByID)
+        .put(loginRequired, updateUser)
+        .delete(loginRequired, deleteUser)
+
+    // Auth routes
+    app.route('/auth/login')
+        .post(login)
+
+    app.route('/auth/register')
+        .post(register)
 }
 
 export default routes

@@ -11,6 +11,7 @@ export const register = (req, res) => {
 
 export const login = (req, res) => {
 
+
 }
 
 export const loginRequired = (req, res, next) => req.user ? next() : res.status(401).json({message: 'Unauthorized!'})
