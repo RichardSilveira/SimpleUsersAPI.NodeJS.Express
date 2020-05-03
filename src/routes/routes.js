@@ -1,31 +1,31 @@
-import {getUser, getUserByID, addUser, updateUser, deleteUser} from '../controllers/userController'
-import {login, loginRequired, register} from '../controllers/authController'
+import {
+  getUser, getUserByID, addUser, updateUser, deleteUser,
+} from '../controllers/userController';
+import {login, loginRequired, register} from '../controllers/authController';
 
 const routes = (app) => {
+  // User routes
+  app.route('/users')
+    .get((req, res, next) => {
+      // fun with middlewares (play a little with it later)
 
-    // User routes
-    app.route('/users')
-        .get((req, res, next) => {
-            // fun with middlewares (play a little with it later)
+      console.log(`request info: ${req.method}, ${req.originalUrl}`);
+      next();
+    }, loginRequired, getUser)
 
-            console.log(`request info: ${req.method}, ${req.originalUrl}`)
-            next()
+    .post(loginRequired, addUser);
 
-        }, loginRequired, getUser)
+  app.route('/users/:userID')
+    .get(loginRequired, getUserByID)
+    .put(loginRequired, updateUser)
+    .delete(loginRequired, deleteUser);
 
-        .post(loginRequired, addUser)
+  // Auth routes
+  app.route('/auth/login')
+    .post(login);
 
-    app.route('/users/:userID')
-        .get(loginRequired, getUserByID)
-        .put(loginRequired, updateUser)
-        .delete(loginRequired, deleteUser)
+  app.route('/auth/register')
+    .post(register);
+};
 
-    // Auth routes
-    app.route('/auth/login')
-        .post(login)
-
-    app.route('/auth/register')
-        .post(register)
-}
-
-export default routes
+export default routes;
