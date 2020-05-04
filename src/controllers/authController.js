@@ -35,4 +35,6 @@ export const login = (req, res) => {
   });
 };
 
-export const loginRequired = (req, res, next) => (req.user ? next() : res.status(401).json({ message: 'Unauthorized!' }));
+export const loginRequired = (req, res, next) => {
+  if (req.user) { next() } else res.status(401).json({ message: 'Unauthorized!' });
+};

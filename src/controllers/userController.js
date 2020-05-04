@@ -30,8 +30,7 @@ export const getUserByID = (req, res) => {
 };
 
 export const updateUser = (req, res) => {
-  User.findOneAndUpdate(
-    { _id: req.params.userID }, req.body, { new: true, useFindAndModify: false },
+  User.findOneAndUpdate({ _id: req.params.userID }, req.body, { new: true, useFindAndModify: false },
     (err, user) => {
       if (err) res.send(err);
 
