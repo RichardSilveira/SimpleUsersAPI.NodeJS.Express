@@ -19,20 +19,18 @@ export const register = (req, res) => {
 export const login = (req, res) => {
   const { password, email } = req.body;
 
-  AuthUser.findOne({ email }, (err, user) => {
-    if (err) throw err;
+  const user = AuthUser.findOne({ email }).exec();
 
-    if (!user) return res.status(401).json({ message: 'User not found' });
+  if (!user) return res.status(401).json({ message: 'User not found' });
 
-    if (!user.comparePassword(password, user.hashPassword)) {
-      return res.status(401).json({ message: 'User not found' });// Isn't a good idea return the real reason here...
-    }
+  if (!user.comparePassword(password, user.hashPassword)) {
+    return res.status(401).json({ message: 'User not found' });// Isn't a good idea return the real reason here...
+  }
 
-    const token = jwt.sign({ _id: user._id, email: user.email, username: user.userName },
-      process.env.AUTH_SECRET,
-      { expiresIn: 300 }); // 5 mins
-    return res.status(200).json({ token });
-  });
+  const token = jwt.sign({ _id: user._id, email: user.email, username: user.userName },
+    process.env.AUTH_SECRET, { expiresIn: 300 }); // 5 mins
+
+  return res.status(200).json({ token });
 };
 
 export const loginRequired = (req, res, next) => {
