@@ -3,6 +3,9 @@ import {
 } from '../controllers/userController';
 import { login, loginRequired, register } from '../controllers/authController';
 
+const handle = (promiseFn) => (req, res, next) => promiseFn(req, res, next).catch((err) => next(err));
+
+
 const routes = (app) => {
   // User routes
   app.route('/users')
@@ -18,9 +21,9 @@ const routes = (app) => {
     .post(addUser);
 
   app.route('/users/:userID')
-    .get(getUserByID)
-    .put(updateUser)
-    .delete(deleteUser);
+    .get(handle(async (req, res, next) => getUserByID(req, res, next)))
+    .put(async (req, res) => updateUser(req, res))
+    .delete(async (req, res) => deleteUser(req, res));
 
   // Auth routes
   app.route('/auth/login')

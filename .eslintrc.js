@@ -18,6 +18,8 @@ module.exports = {
     'max-len': ["error", {"code": 120}],
     semi: [2, "always", {"omitLastInOneLineBlock": true}],
     'function-paren-newline': ["error", "never"],
-    "import/prefer-default-export": 0
+    "import/prefer-default-export": 0,
+    "no-plusplus": ["error", {"allowForLoopAfterthoughts": true}],
+    "operator-assignment": 1
   },
 };
