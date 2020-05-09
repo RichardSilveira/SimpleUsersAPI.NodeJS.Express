@@ -56,7 +56,9 @@ app.use((req, res, next) => {
   next();
 });
 
-routes(app);
+const v1 = express.Router();
+routes(v1);
+app.use('/v1', v1);
 
 app.use((err, req, res, next) => {
   console.log(`An error was throw ${err}`);
