@@ -14,16 +14,16 @@ const routes = (app) => {
 
       console.log(`request info: ${req.method}, ${req.originalUrl}`);
       next();
-    }, getUser)
+    }, handle(async (req, res, next) => getUser(req, res, next)))
     // loginRequired middleware removed for tests, we should put it before the controller' method itself
     // I'll use a mock for it later...
 
-    .post(addUser);
+    .post(handle(async (req, res, next) => addUser(req, res, next)));
 
   app.route('/users/:userID')
     .get(handle(async (req, res, next) => getUserByID(req, res, next)))
-    .put(async (req, res) => updateUser(req, res))
-    .delete(async (req, res) => deleteUser(req, res));
+    .put(handle(async (req, res) => updateUser(req, res)))
+    .delete(handle(async (req, res) => deleteUser(req, res)));
 
   // Auth routes
   app.route('/auth/login')

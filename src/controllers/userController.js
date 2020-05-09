@@ -6,40 +6,30 @@ const User = mongoose.model('User', UserSchema);
 export const addUser = async (req, res) => {
   const newUser = new User(req.body);
 
-  await newUser.save((err, user) => {
-    if (err) res.send(err);
-
-    res.json(user);
-  });
+  const user = await newUser.save();
+  res.json(user);
 };
 
 export const getUser = async (req, res) => {
-  await User.find({}, (err, user) => {
-    if (err) res.send(err);
-
-    res.json(user);
-  });
+  const user = await User.find({}).exec();
+  res.json(user);
 };
 
 export const getUserByID = async (req, res) => {
-  const user = await User.findById(req.params.userID);
+  const user = await User.findById(req.params.userID).exec();
   res.json(user);
 };
 
 
 export const updateUser = async (req, res) => {
-  await User.findOneAndUpdate({ _id: req.params.userID }, req.body, { new: true, useFindAndModify: false },
-    (err, user) => {
-      if (err) res.send(err);
+  const user = await User.findOneAndUpdate({ _id: req.params.userID },
+    req.body, { new: true, useFindAndModify: false }).exec();
 
-      res.json(user);
-    });
+  res.json(user);
 };
 
 export const deleteUser = async (req, res) => {
-  await User.remove({ _id: req.params.userID }, (err) => {
-    if (err) res.send(err);
+  await User.remove({ _id: req.params.userID }).exec();
 
-    res.json({ message: 'User successfuly deleted' });
-  });
+  res.json({ message: 'User successfuly deleted' });
 };
