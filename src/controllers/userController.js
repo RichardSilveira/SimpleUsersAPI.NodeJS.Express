@@ -8,26 +8,31 @@ export const addUser = async (req, res) => {
 
   const user = await newUser.save();
 
-  res.location(`/v1/users/${user._id}`);
+  // todo: Add complete uri for the resource (after adjustments to use of environments properly
+  res.location(`http://localhost:4000/v1/users/${user._id}`);
   res.status(201).json(user);
 };
 
 export const getUser = async (req, res) => {
   const user = await User.find({}).exec();
+  if (!user) res.status(404).send();
+
   res.json(user);
 };
 
 export const getUserByID = async (req, res) => {
-  // todo: return Not found properly
   const user = await User.findById(req.params.userID).exec();
+  if (!user) res.status(404).send();
+
   res.json(user);
 };
 
 
 export const updateUser = async (req, res) => {
-  //todo: Create a new one in case of user not found and returns 201 instead
   const user = await User.findOneAndUpdate({ _id: req.params.userID },
     req.body, { new: true, useFindAndModify: false }).exec();
+
+  if (!user) res.status(404).send();
 
   res.json(user);
 };
@@ -35,5 +40,5 @@ export const updateUser = async (req, res) => {
 export const deleteUser = async (req, res) => {
   await User.deleteOne({ _id: req.params.userID }).exec();
 
-  res.status(204).json();
+  res.status(204).send();
 };
