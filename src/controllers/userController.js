@@ -1,55 +1,44 @@
-import mongoose from 'mongoose'
-import {UserSchema} from '../models/userModel'
+import mongoose from 'mongoose';
+import { UserSchema } from '../models/userModel';
 
-const User = mongoose.model('User', UserSchema)
+const User = mongoose.model('User', UserSchema);
 
-export const addUser = (req, res) => {
-    let newUser = new User(req.body)
+export const addUser = async (req, res) => {
+  const newUser = new User(req.body);
 
-    newUser.save((err, user) => {
-        if (err)
-            res.send(err)
+  const user = await newUser.save();
 
-        res.json(user)
-    })
-}
+  // todo: Add complete uri for the resource (after adjustments to use of environments properly
+  res.location(`http://localhost:4000/v1/users/${user._id}`);
+  res.status(201).json(user);
+};
 
-export const getUser = (req, res) => {
-    User.find({}, (err, user) => {
-        if (err)
-            res.send(err)
+export const getUser = async (req, res) => {
+  const user = await User.find({}).exec();
+  if (!user) res.status(404).send();
 
-        res.json(user)
-    })
-}
+  res.json(user);
+};
 
-export const getUserByID = (req, res) => {
-    User.findById(req.params.userID, (err, user) => {
-        if (err)
-            res.json(err)
+export const getUserByID = async (req, res) => {
+  const user = await User.findById(req.params.userID).exec();
+  if (!user) res.status(404).send();
 
-        res.json(user)
-    })
-}
-
-export const updateUser = (req, res) => {
-    User.findOneAndUpdate({_id: req.params.userID}, req.body, {new: true, useFindAndModify: false},
-        (err, user) => {
-            if (err)
-                res.send(err)
-
-            res.json(user)
-        })
-}
-
-export const deleteUser = (req, res) => {
-    User.remove({_id: req.params.userID}, (err, user) => {
-        if (err)
-            res.send(err)
-
-        res.json({message: 'User successfuly deleted'})
-    })
-}
+  res.json(user);
+};
 
 
+export const updateUser = async (req, res) => {
+  const user = await User.findOneAndUpdate({ _id: req.params.userID },
+    req.body, { new: true, useFindAndModify: false }).exec();
 
+  if (!user) res.status(404).send();
+
+  res.json(user);
+};
+
+export const deleteUser = async (req, res) => {
+  await User.deleteOne({ _id: req.params.userID }).exec();
+
+  res.status(204).send();
+};
