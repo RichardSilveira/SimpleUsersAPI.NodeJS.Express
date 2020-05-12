@@ -15,7 +15,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"firstName\": \"Richard\",\n\t\"lastName\": \"Lee\"\n}",
+					"raw": "{\n\t\"firstName\": \"Richard\",\n\t\"lastName\": \"Silveira\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -23,12 +23,13 @@
 					}
 				},
 				"url": {
-					"raw": "localhost:4000/users",
+					"raw": "localhost:4000/v1/users",
 					"host": [
 						"localhost"
 					],
 					"port": "4000",
 					"path": [
+						"v1",
 						"users"
 					]
 				}
@@ -42,17 +43,18 @@
 				"header": [
 					{
 						"key": "Authorization",
-						"value": "JWT eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1ZWFkZWY3YmU2Y2Q2NDMyMzhjNWEzNWUiLCJlbWFpbCI6ImFiY0BnbWFpbC5jb20iLCJ1c2VybmFtZSI6InJpY2hhcmQiLCJpYXQiOjE1ODg0NTg2NDIsImV4cCI6MTU4ODQ1ODk0Mn0.WcPhtojhCg3kUcyEP6hjSWXVXrhkQ9mZg_Cd1u5P5nk",
+						"value": "JWT eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1ZWFkZWY3YmU2Y2Q2NDMyMzhjNWEzNWUiLCJlbWFpbCI6ImFiY0BnbWFpbC5jb20iLCJ1c2VybmFtZSI6InJpY2hhcmQiLCJpYXQiOjE1ODg0NTg5NTMsImV4cCI6MTU4ODQ1OTI1M30.hWsqrhX2YHZIKSjYYYr0HZ6m9jiKr_0WCGXMp1G7Sh8",
 						"type": "text"
 					}
 				],
 				"url": {
-					"raw": "localhost:4000/users",
+					"raw": "localhost:4000/v1/users",
 					"host": [
 						"localhost"
 					],
 					"port": "4000",
 					"path": [
+						"v1",
 						"users"
 					]
 				}
@@ -65,14 +67,15 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "localhost:4000/users/5eab2ca849e7eb4290580733",
+					"raw": "localhost:4000/v1/users/5eab2da049e7eb4290580736",
 					"host": [
 						"localhost"
 					],
 					"port": "4000",
 					"path": [
+						"v1",
 						"users",
-						"5eab2ca849e7eb4290580733"
+						"5eab2da049e7eb4290580736"
 					]
 				}
 			},
@@ -85,7 +88,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"lastName\": \"Silveira\"\r\n}",
+					"raw": "{\r\n    \"lastName\": \"Silveira 3\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -93,14 +96,15 @@
 					}
 				},
 				"url": {
-					"raw": "localhost:4000/users/5eab2ca849e7eb4290580733",
+					"raw": "localhost:4000/v1/users/5eab2da049e7eb4290580733",
 					"host": [
 						"localhost"
 					],
 					"port": "4000",
 					"path": [
+						"v1",
 						"users",
-						"5eab2ca849e7eb4290580733"
+						"5eab2da049e7eb4290580733"
 					]
 				}
 			},
@@ -112,14 +116,15 @@
 				"method": "DELETE",
 				"header": [],
 				"url": {
-					"raw": "localhost:4000/users/5eab2ca849e7eb4290580733",
+					"raw": "localhost:4000/v1/users/5eb70823eafbc83848842182",
 					"host": [
 						"localhost"
 					],
 					"port": "4000",
 					"path": [
+						"v1",
 						"users",
-						"5eab2ca849e7eb4290580733"
+						"5eb70823eafbc83848842182"
 					]
 				}
 			},
@@ -132,7 +137,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"userName\":\"richard\",\n\t\"email\":\"abc@gmail.com\",\n\t\"password\":\"test123\"\n}",
+					"raw": "{\n\t\"userName\":\"richard\",\n\t\"email\":\"abc1@gmail.com\",\n\t\"password\":\"test123\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -140,12 +145,13 @@
 					}
 				},
 				"url": {
-					"raw": "localhost:4000/auth/register",
+					"raw": "localhost:4000/v1/auth/register",
 					"host": [
 						"localhost"
 					],
 					"port": "4000",
 					"path": [
+						"v1",
 						"auth",
 						"register"
 					]
@@ -163,7 +169,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"email\":\"abc@gmail.com\",\n\t\"password\":\"test123\"\n}",
+					"raw": "{\n\t\"email\":\"abc1@gmail.com\",\n\t\"password\":\"test123\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -171,12 +177,13 @@
 					}
 				},
 				"url": {
-					"raw": "localhost:4000/auth/login",
+					"raw": "localhost:4000/v1/auth/login",
 					"host": [
 						"localhost"
 					],
 					"port": "4000",
 					"path": [
+						"v1",
 						"auth",
 						"login"
 					]
