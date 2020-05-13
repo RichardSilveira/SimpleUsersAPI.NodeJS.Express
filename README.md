@@ -71,11 +71,20 @@ We need to work with an OpenApi spec and still talking about REST APIs, providin
 
 Just a note here, you'll need to import the updated POSTMAN collection again. 
 
-#### Security Aspects and better general project organization - v3.1.0
+#### Security Aspects and better general project organization - v3.1.1
 
-Import security aspects to handle attacks as _Cross Site Request Forgery (CSRF)_, and _CORS_ settings are Ok now. 
+Important security aspects to handle attacks as _Cross Site Request Forgery (CSRF)_, and _CORS_ settings are Ok now. 
 > We need to go back here when a UI will have to integrate with this API
 >
 Some common performance settings as gzip compression were done, but we need to keep in mind that lots of stuff at this field can be (and maybe will) done in the Reverse Proxy later.
 
-The Configuration aspects of the API were reorganized to better readability.  
+The Configuration aspects of the API were reorganized to better readability.
+
+**Instructions:**
+
+For the configurations, this project works which a combination of `dotenv` (using `dotenv-safe`) and `convict`, so, 
+the values that should be stored as environment variables (such as keys/secrets/passwords) you may notice at `.env.example` file
+and the others values that there is no problem to reveal them among other team members can be stored in files like 
+`development.json` and `production.json` under the `config`directory. 
+
+
