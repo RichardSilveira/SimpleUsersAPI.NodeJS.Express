@@ -7,7 +7,6 @@ const handle = (promiseFn) => (req, res, next) => promiseFn(req, res, next).catc
 
 
 const routes = (app) => {
-
   // User routes
   app.route('/users')
     .get(handle(async (req, res, next) => getUser(req, res, next)))

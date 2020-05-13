@@ -48,7 +48,7 @@ All instructions of section 1 are applied here, plus you may import the postman 
 
 How it is a huge topic, I split it up to some releases.
 
-#### Asynchronous methods and REST - v3.1.0
+#### Asynchronous methods and REST - v3.0.0
 
 How Node.js is a single threaded framework that works on top of the delegation of tasks to the `Event Loop` 
 we need to take care about our synchronous operations (eg. API, Database Calls) to avoid blocking of our app, 
@@ -71,9 +71,11 @@ We need to work with an OpenApi spec and still talking about REST APIs, providin
 
 Just a note here, you'll need to import the updated POSTMAN collection again. 
 
+#### Security Aspects and better general project organization - v3.1.0
 
+Import security aspects to handle attacks as _Cross Site Request Forgery (CSRF)_, and _CORS_ settings are Ok now. 
+> We need to go back here when a UI will have to integrate with this API
+>
+Some common performance settings as gzip compression were done, but we need to keep in mind that lots of stuff at this field can be (and maybe will) done in the Reverse Proxy later.
 
-
-
-
-  
+The Configuration aspects of the API were reorganized to better readability.  

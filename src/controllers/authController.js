@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import mongoose from 'mongoose';
+import { jwtConfig } from '../config';
 import { AuthUserSchema } from '../models/authUserModel';
 
 const AuthUser = mongoose.model('AuthUser', AuthUserSchema);
@@ -26,7 +27,7 @@ export const login = async (req, res) => {
   if (!user.comparePassword(password, user.hashPassword)) res.status(401).send();
 
   const token = jwt.sign({ _id: user._id, email: user.email, username: user.userName },
-    process.env.AUTH_SECRET, { expiresIn: 300 }); // 5 mins
+    jwtConfig.secret, { expiresIn: jwtConfig.exp }); // 5 mins
 
   res.status(200).json({ token });
 };

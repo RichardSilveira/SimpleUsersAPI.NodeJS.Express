@@ -1,7 +1,10 @@
 import mongoose from 'mongoose';
 import { UserSchema } from '../models/userModel';
+import { usersApiConfig } from '../config';
 
 const User = mongoose.model('User', UserSchema);
+
+const { baseUri } = usersApiConfig;
 
 export const addUser = async (req, res) => {
   const newUser = new User(req.body);
@@ -9,7 +12,7 @@ export const addUser = async (req, res) => {
   const user = await newUser.save();
 
   // todo: Add complete uri for the resource (after adjustments to use of environments properly
-  res.location(`http://localhost:4000/v1/users/${user._id}`);
+  res.location(`${baseUri}/users/${user._id}`);
   res.status(201).json(user);
 };
 
