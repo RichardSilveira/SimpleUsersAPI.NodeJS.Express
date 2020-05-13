@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import mongoose from 'mongoose';
-import { jwtConfig } from '../config';
+import { jwtConfig } from '../config/config';
 import { AuthUserSchema } from '../models/authUserModel';
 
 const AuthUser = mongoose.model('AuthUser', AuthUserSchema);

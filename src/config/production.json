@@ -1,0 +1,8 @@
+{
+  "jwtConfig": {
+    "exp": 300
+  },
+  "usersApiConfig": {
+    "baseUri": "http://localhost:4000/v1/"
+  }
+}

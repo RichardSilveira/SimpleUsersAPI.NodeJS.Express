@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import { UserSchema } from '../models/userModel';
-import { usersApiConfig } from '../config';
+import { usersApiConfig } from '../config/config';
 
 const User = mongoose.model('User', UserSchema);
 

@@ -7,11 +7,12 @@ import helmet from 'helmet';
 import cors from 'cors';
 import {
   stage, usersApiConfig, mongodbConfig, jwtConfig,
-} from './config';
+} from './config/config';
 import routes from './routes/routes';
 
 const app = express();
 const PORT = usersApiConfig.port;
+
 
 /* Client must add header "Accept-Encoding: gzip,deflate"
   note: may your Reverse Proxy should do this work for you
