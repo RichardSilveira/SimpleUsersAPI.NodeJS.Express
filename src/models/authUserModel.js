@@ -1,9 +1,9 @@
-import mongoose from 'mongoose';
-import bcrypt from 'bcrypt';
+const mongoose = require('mongoose');
+const bcrypt = require('bcrypt');
 
 const { Schema } = mongoose;
 
-export const AuthUserSchema = new Schema({
+const AuthUserSchema = new Schema({
   userName: {
     type: String,
     required: true,
@@ -24,3 +24,4 @@ export const AuthUserSchema = new Schema({
 
 AuthUserSchema.methods.comparePassword = (password, hashPassword) => bcrypt.compareSync(password, hashPassword);
 
+module.exports = AuthUserSchema;

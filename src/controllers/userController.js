@@ -1,12 +1,12 @@
-import mongoose from 'mongoose';
-import { UserSchema } from '../models/userModel';
-import { usersApiConfig } from '../config/config';
+const mongoose = require('mongoose');
+const UserSchema = require('../models/userModel');
+const { usersApiConfig } = require('../config/config');
 
 const User = mongoose.model('User', UserSchema);
 
 const { baseUri } = usersApiConfig;
 
-export const addUser = async (req, res) => {
+exports.addUser = async (req, res) => {
   const newUser = new User(req.body);
 
   const user = await newUser.save();
@@ -16,14 +16,14 @@ export const addUser = async (req, res) => {
   res.status(201).json(user);
 };
 
-export const getUser = async (req, res) => {
+exports.getUser = async (req, res) => {
   const user = await User.find({}).exec();
   if (!user) res.status(404).send();
 
   res.json(user);
 };
 
-export const getUserByID = async (req, res) => {
+exports.getUserByID = async (req, res) => {
   const user = await User.findById(req.params.userID).exec();
   if (!user) res.status(404).send();
 
@@ -31,7 +31,7 @@ export const getUserByID = async (req, res) => {
 };
 
 
-export const updateUser = async (req, res) => {
+exports.updateUser = async (req, res) => {
   const user = await User.findOneAndUpdate({ _id: req.params.userID },
     req.body, { new: true, useFindAndModify: false }).exec();
 
@@ -40,7 +40,7 @@ export const updateUser = async (req, res) => {
   res.json(user);
 };
 
-export const deleteUser = async (req, res) => {
+exports.deleteUser = async (req, res) => {
   await User.deleteOne({ _id: req.params.userID }).exec();
 
   res.status(204).send();

@@ -1,14 +1,14 @@
-import express from 'express';
-import mongoose from 'mongoose';
-import bodyParser from 'body-parser';
-import jsonwebtoken from 'jsonwebtoken';
-import compression from 'compression';
-import helmet from 'helmet';
-import cors from 'cors';
-import {
+const express = require('express');
+const mongoose = require('mongoose');
+const bodyParser = require('body-parser');
+const jsonwebtoken = require('jsonwebtoken');
+const compression = require('compression');
+const helmet = require('helmet');
+const cors = require('cors');
+const {
   stage, usersApiConfig, mongodbConfig, jwtConfig,
-} from './config/config';
-import routes from './routes/routes';
+} = require('./config/config');
+const routes = require('./routes/routes');
 
 const app = express();
 const PORT = usersApiConfig.port;

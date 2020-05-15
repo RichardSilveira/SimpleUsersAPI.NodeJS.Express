@@ -1,8 +1,5 @@
-import dotenv from 'dotenv-safe';
-
-import convict from 'convict';
-
-dotenv.config();
+require('dotenv-safe').config();
+const convict = require('convict');
 
 const config = convict({
   stage: {
