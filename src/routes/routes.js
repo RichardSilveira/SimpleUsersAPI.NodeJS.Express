@@ -1,7 +1,7 @@
-import {
+const {
   getUser, getUserByID, addUser, updateUser, deleteUser,
-} from '../controllers/userController';
-import { login, loginRequired, register } from '../controllers/authController';
+} = require('../controllers/userController');
+const { login, loginRequired, register } = require('../controllers/authController');
 
 const handle = (promiseFn) => (req, res, next) => promiseFn(req, res, next).catch((err) => next(err));
 
@@ -30,4 +30,4 @@ const routes = (app) => {
   // I'll use a mock for it later...
 };
 
-export default routes;
+module.exports = routes;

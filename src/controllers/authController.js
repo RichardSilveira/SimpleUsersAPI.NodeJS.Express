@@ -1,12 +1,12 @@
-import jwt from 'jsonwebtoken';
-import bcrypt from 'bcrypt';
-import mongoose from 'mongoose';
-import { jwtConfig } from '../config/config';
-import { AuthUserSchema } from '../models/authUserModel';
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
+const mongoose = require('mongoose');
+const AuthUserSchema = require('../models/authUserModel');
+const { jwtConfig } = require('../config/config');
 
 const AuthUser = mongoose.model('AuthUser', AuthUserSchema);
 
-export const register = async (req, res) => {
+exports.register = async (req, res) => {
   const user = new AuthUser(req.body);
 
   user.hashPassword = await bcrypt.hash(req.body.password, 10);
@@ -17,7 +17,7 @@ export const register = async (req, res) => {
   res.status(200).json(newUser);
 };
 
-export const login = async (req, res) => {
+exports.login = async (req, res) => {
   const { password, email } = req.body;
 
   const user = await AuthUser.findOne({ email }).exec();
@@ -32,6 +32,6 @@ export const login = async (req, res) => {
   res.status(200).json({ token });
 };
 
-export const loginRequired = (req, res, next) => {
+exports.loginRequired = (req, res, next) => {
   if (req.user) { next() } else res.status(401).send();
 };

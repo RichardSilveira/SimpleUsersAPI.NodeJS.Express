@@ -4,9 +4,7 @@
   "description": "A simple API sample made in Node.js, Express, and MongoDb to be used as a base case to other cases",
   "main": "src/index.js",
   "scripts": {
-    "start": "nodemon src/index.js --exec babel-node -e js",
-    "build": "babel src --out-dir dist",
-    "serve": "node dist/index.js",
+    "start": "nodemon src/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -26,25 +24,22 @@
   },
   "homepage": "https://github.com/RichardSilveira/SimpleUsersAPI.NodeJS.Express#readme",
   "dependencies": {
-    "bcrypt": "^4.0.1",
-    "body-parser": "^1.19.0",
-    "compression": "^1.7.4",
-    "convict": "^6.0.0",
-    "cors": "^2.8.5",
-    "dotenv-safe": "^8.2.0",
-    "express": "^4.17.1",
-    "helmet": "^3.22.0",
-    "jsonwebtoken": "^8.5.1",
-    "mongodb": "^3.5.7",
-    "mongoose": "^5.9.10",
-    "nodemon": "^2.0.3"
+    "bcrypt": "~4.0.1",
+    "body-parser": "~1.19.0",
+    "compression": "~1.7.4",
+    "convict": "~6.0.0",
+    "cors": "~2.8.5",
+    "dotenv-safe": "~8.2.0",
+    "express": "~4.17.1",
+    "helmet": "~3.22.0",
+    "jsonwebtoken": "~8.5.1",
+    "mongodb": "~3.5.7",
+    "mongoose": "~5.9.10",
+    "nodemon": "~2.0.3"
   },
   "devDependencies": {
-    "babel-cli": "^6.26.0",
-    "babel-preset-env": "^1.7.0",
-    "babel-preset-stage-0": "^6.24.1",
-    "eslint": "^6.8.0",
-    "eslint-config-airbnb-base": "^14.1.0",
-    "eslint-plugin-import": "^2.20.2"
+    "eslint": "~6.8.0",
+    "eslint-config-airbnb-base": "~14.1.0",
+    "eslint-plugin-import": "~2.20.2"
   }
 }
