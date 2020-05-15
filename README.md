@@ -87,4 +87,46 @@ the values that should be stored as environment variables (such as keys/secrets/
 and the others values that there is no problem to reveal them among other team members can be stored in files like 
 `development.json` and `production.json` under the `config`directory. 
 
+#### Clustering in Node.js with PM2 - v3.2.0
+
+Like said earlier Node.js is a single-threaded language and works on top on the `Event Loop` model 
+what simplifies a lot our development model about multi-threading and race-condition concerns that 
+we need to handle in other languages like C# and Java to perform better in our multi-core server machine. 
+In Node.js we don't need to worry about this kind of stuff, but on the other hand, we need to be concerned 
+about the Node.js Cluster module and how it handles the worker processes, how they are spawned according 
+the number of Cores from the host machine, how to fork a new child worker, and so on.    
+
+To help us which this task, we need to use a **Node Process Manager**, the most popular nowadays is the `PM 2`. 
+`PM 2` will fork process according to new requests are coming X host server capacity, besides it will 
+handle restarts, errors, monitoring, among other tasks.
+
+If we need, `PM 2` will handle some stuffs like deploy in production directly in the server destination host, 
+but I prefer to use `PM 2` limited to cluster management responsibilities, one reason is that working with AWS, 
+the deployments using EC2 hosts is faster (and well-organized) through "Golden AMI" strategy, this way we've 
+the `PM 2` package installed globally and a symlink to it at the project level.
+
+We need to handle database close connection whenever the `PM2` process is killed, 
+I'll reorganize the database later in some kind of repository of a hexagonal architecture (maybe Onion architecture).
+ 
+> I'll show off how to work with "Golden AMI" + ASG + Placement Groups + Blue-Green Deployments in AWS later.
+
+> To boost the build time and app initialization  we may install globally all the main packages like `express`, `body-parser`.
+>
+
+**Instructions:**
+
+Install `pm2` package globally and create a `link` to it in this project.
+
+Notice that `npm start` script will now run `pm2 start ./pm2.config.js` and 
+I made a choice to still use `nodemon` for development, so I created a new npm script `dev` for it. 
+
+- All PM2 settings are in the `pm2.config.js` file
+- To run in production mode, just run pm2 start `./pm2.config.js --env production`.
+
+> I believe I'm using the main settings needed for a ready-to-production app.
+
+
+
+
+
 
