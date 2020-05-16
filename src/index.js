@@ -1,5 +1,4 @@
 const express = require('express');
-const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const jsonwebtoken = require('jsonwebtoken');
 const compression = require('compression');
@@ -9,6 +8,7 @@ const {
   stage, usersApiConfig, mongodbConfig, jwtConfig,
 } = require('./config/config');
 const routes = require('./routes/routes');
+const db = require('./lib/db');
 
 const app = express();
 const PORT = usersApiConfig.port;
@@ -23,32 +23,7 @@ app.use(compression());
 app.use(helmet());
 app.use(cors()); // custom settings eg. allowed origins will be setted up when a front end will exists.
 
-mongoose.Promise = Promise;
-
-mongoose.connection.on('connected', () => {
-  console.log('Connection Established');
-});
-
-mongoose.connection.on('reconnected', () => {
-  console.log('Connection Reestablished');
-});
-
-mongoose.connection.on('disconnected', () => {
-  console.log('Connection Disconnected');
-});
-
-mongoose.connection.on('close', () => {
-  console.log('Connection Closed');
-});
-
-mongoose.connection.on('error', (error) => {
-  console.log(`ERROR: ${error}`);
-});
-
-mongoose.connect(mongodbConfig.connectionString, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-});
+db.connect(mongodbConfig.connectionString).catch((err) => console.log(err));
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
