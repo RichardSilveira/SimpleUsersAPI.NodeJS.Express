@@ -1,13 +1,13 @@
 const mongoose = require('mongoose');
 
 mongoose.Promise = Promise;
+const db = mongoose.connection;
 
-module.exports.connect = async (connStr) => {
+exports.connect = async (connStr) => {
   mongoose.connect(connStr, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   });
-  const db = mongoose.connection;
 
   db.on('connected', () => {
     console.log('Connection Established');
@@ -29,3 +29,5 @@ module.exports.connect = async (connStr) => {
     console.log(`ERROR: ${error}`);
   });
 };
+
+exports.close = () => db.close();

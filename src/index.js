@@ -2,28 +2,30 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const jsonwebtoken = require('jsonwebtoken');
 const compression = require('compression');
+const mongoose = require('mongoose');
 const helmet = require('helmet');
 const cors = require('cors');
+const { createTerminus, HealthCheckError } = require('@godaddy/terminus');
 const {
   stage, usersApiConfig, mongodbConfig, jwtConfig,
 } = require('./config/config');
 const routes = require('./routes/routes');
-const db = require('./lib/db');
+const mongooseConnectionHandler = require('./lib/mongooseConnectionHandler');
+const handleSystemHealth = require('./lib/systemHealthHandler');
 
 const app = express();
 const PORT = usersApiConfig.port;
 
 
 /* Client must add header "Accept-Encoding: gzip,deflate"
-  note: may your Reverse Proxy should do this work for you
- */
+  note: may your Reverse Proxy should do this work for you */
 app.use(compression());
 
-// To add a basic, but good level of protection, adding Headers as "X-XSS-Protection" (among others) by example
-app.use(helmet());
+
+app.use(helmet()); // To add a basic, but good level of protection, adding Headers as "X-XSS-Protection" (among others)
 app.use(cors()); // custom settings eg. allowed origins will be setted up when a front end will exists.
 
-db.connect(mongodbConfig.connectionString).catch((err) => console.log(err));
+mongooseConnectionHandler.connect(mongodbConfig.connectionString).catch((err) => console.log(err));
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -50,15 +52,32 @@ app.use('/v1', v1);
 
 app.use((err, req, res, next) => {
   console.log(`An error was throw ${err}`);
-  res.status(500).send('An unexpected error has occurred'); // We can improve it, but for now, it's ok...
+  res.status(500).send('An unexpected error has occurred'); // We can improve it by handling custom error objects
 });
 
-// serving static files
-app.use(express.static('public'));
-
-app.get('/', (req, res) => res.send(`Express running on port ${PORT}`));
+app.use(express.static('public'));// serving static files
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`Environment: ${stage}`);
 });
+
+// Health Check and Graceful shutdown
+const makeResourcesCleanup = () => new Promise((resolve) => {
+  // start cleanup of resource, like databases or file descriptors
+
+  console.log('server is starting cleanup inside');
+
+  mongooseConnectionHandler.close();
+  resolve();
+});
+
+const makeHeathChecks = () => new Promise(((resolve, reject) => {
+  // 0 = disconnected, 1 = connected, 2 = connecting, 3 = disconnecting
+  const mongoDbConnState = mongoose.connection.readyState;
+
+  if ([1, 2].find((it) => it === mongoDbConnState)) resolve({ mongoDbConnState });
+  else reject(new HealthCheckError('Mongoose connection is closed'));
+}));
+
+handleSystemHealth(app, makeHeathChecks, makeResourcesCleanup);
