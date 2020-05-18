@@ -15,15 +15,15 @@ exports.addUser = async (req, res) => {
   res.status(201).json(user);
 };
 
-exports.getUser = async (req, res) => {
-  const user = await User.find({}).exec();
+exports.getUsers = async (req, res) => {
+  const user = await User.find({}).lean().exec();
   if (!user) res.status(404).send();
 
   res.json(user);
 };
 
 exports.getUserByID = async (req, res) => {
-  const user = await User.findById(req.params.userID).exec();
+  const user = await User.findById(req.params.userID).lean().exec();
   if (!user) res.status(404).send();
 
   res.json(user);
