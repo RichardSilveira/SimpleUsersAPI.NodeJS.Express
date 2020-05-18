@@ -1,4 +1,3 @@
-require('dotenv-safe').config();
 const convict = require('convict');
 
 const config = convict({
@@ -12,7 +11,7 @@ const config = convict({
     connectionString: {
       doc: 'Main Database Connection String',
       format: String,
-      default: 'aaa',
+      default: '',
       env: 'MONGODB_CONNSTR',
     },
   },

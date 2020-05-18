@@ -1,11 +1,11 @@
-const path = require('path');
-
 module.exports = {
   name: 'usersapi',
-  cwd: path.resolve(__dirname, './src/index'),
-  script: 'index.js',
+  cwd: '.',
+  script: './src/index.js',
+  node_args: '-r dotenv-safe/config ./src/index.js',
+  instances: 'max',
+  exec_mode: 'cluster',
   exp_backoff_restart_delay: 100,
-  watch: true,
   instance_var: 'INSTANCE_ID',
   env: {
     PORT: 4000,

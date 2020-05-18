@@ -89,8 +89,11 @@ and the others values that there is no problem to reveal them among other team m
 
 #### Clustering in Node.js with PM2 - v3.2.0
 
-Like said earlier Node.js is a single-threaded language and works on top on the `Event Loop` model 
-what simplifies a lot our development model about multi-threading and race-condition concerns that 
+> Tl;dr: No multi-threading model, however you need to scale your app earlier with Node.js Cluster model, 
+>but you don't need to do it on your own, you may use a **Node Process Manager** like `PM 2` instead.     
+>
+Like I said earlier Node.js is a single-threaded language and works on top on the `Event Loop` model 
+and simplifies a lot our development model about multi-threading and race-condition concerns that 
 we need to handle in other languages like C# and Java to perform better in our multi-core server machine. 
 In Node.js we don't need to worry about this kind of stuff, but on the other hand, we need to be concerned 
 about the Node.js Cluster module and how it handles the worker processes, how they are spawned according 
@@ -115,17 +118,24 @@ I'll reorganize the database later in some kind of repository of a hexagonal arc
 
 **Instructions:**
 
-Install `pm2` package globally and create a `link` to it in this project.
+Install `pm2` package globally and create a `npm link` to it in this project.
 
 Notice that `npm start` script will now run `pm2 start ./pm2.config.js` and 
 I made a choice to still use `nodemon` for development, so I created a new npm script `dev` for it. 
 
 - All PM2 settings are in the `pm2.config.js` file
-- To run in production mode, just run pm2 start `./pm2.config.js --env production`.
+- All scripts needed for daily-basis tasks are included in the `package.json` scripts section.
 
-> I believe I'm using the main settings needed for a ready-to-production app.
+> I'm using the main settings needed for a ready-to-production app.
+>
 
+#### Health Check and Graceful Shutdown - v3.3.0
 
+- Health Checks - To signalize to your Load Balancers that an instance is fine and there is no need to restarts 
+by checking whatever you want eg. your Db connections.
+
+- Graceful Shutdown - To have a chance to dispose of all your unmanaged resources by Node.js before your app 
+is killed eg. Db connections. 
 
 
 

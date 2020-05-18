@@ -11,7 +11,6 @@ exports.addUser = async (req, res) => {
 
   const user = await newUser.save();
 
-  // todo: Add complete uri for the resource (after adjustments to use of environments properly
   res.location(`${baseUri}/users/${user._id}`);
   res.status(201).json(user);
 };
