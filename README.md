@@ -4,7 +4,7 @@ A simple API sample made in Node.js, Express, and MongoDb to be used as a base c
 ## Agenda
 - [x] Simple CRUD operations for Users REST API using Express and Mongoose
 - [x] Secure the API (Authentication and Authorization concerns)
-- [ ] Research and apply good practices on top of a NodeJS Express API 
+- [X] Research and apply good practices on top of a NodeJS Express API 
 - [ ] Apply some resilience layer on top of database connection (maybe using some sort of circuit breaker)
 - [ ] (Optional) Create a UI for the API before the migration to AWS to test some integrations in a real-world scenario, (eg. CORS, Firebase Authentication)
 - [ ] Migrate the MongoDB workload to AWS, setting up a Multi AZ infrastructure to provide High Availability
@@ -138,5 +138,18 @@ by checking whatever you want eg. your Db connections.
 is killed eg. Db connections. 
 
 
+#### Final Notes
 
+We're still using `console.log` for logging, but how it's a blocking code, we need to change it to a 
+non-blocking library like `Winston` with some kind of correlation requests strategy, 
+besides `Winston` has great capabilities to integrate with others APM solutions through the idea of `transports`, 
+and `transformations` operations we may ended up redoing some work when integrating our logging strategy 
+with our final APM solution and Cloud Provider tools for logging.
 
+AWS offers great solutions for logging, Azure has its own solutions too, and so on. 
+Plus, in some cases, we may still need a third-party APM solution like ElasticSearch APM, Dynatrace, Datadog among others.
+Therefore we need to keep all of it in mind, before either choice and configure a non-blocking library or 
+even start spreading lots of `console.log` in our app.
+
+> I won't do any application architecture decisions here, the better way to do that, is in another repository, focused 
+on the architecture itself.

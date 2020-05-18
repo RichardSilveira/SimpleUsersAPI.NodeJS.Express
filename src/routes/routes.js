@@ -1,5 +1,5 @@
 const {
-  getUser, getUserByID, addUser, updateUser, deleteUser,
+  getUsers, getUserByID, addUser, updateUser, deleteUser,
 } = require('../controllers/userController');
 const { login, loginRequired, register } = require('../controllers/authController');
 
@@ -9,7 +9,7 @@ const handle = (promiseFn) => (req, res, next) => promiseFn(req, res, next).catc
 const routes = (app) => {
   // User routes
   app.route('/users')
-    .get(handle(async (req, res, next) => getUser(req, res, next)))
+    .get(handle(async (req, res, next) => getUsers(req, res, next)))
 
 
     .post(handle(async (req, res, next) => addUser(req, res, next)));

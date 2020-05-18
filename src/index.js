@@ -5,7 +5,7 @@ const compression = require('compression');
 const mongoose = require('mongoose');
 const helmet = require('helmet');
 const cors = require('cors');
-const { createTerminus, HealthCheckError } = require('@godaddy/terminus');
+const { HealthCheckError } = require('@godaddy/terminus');
 const {
   stage, usersApiConfig, mongodbConfig, jwtConfig,
 } = require('./config/config');
