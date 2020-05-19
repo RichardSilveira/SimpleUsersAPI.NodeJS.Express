@@ -5,9 +5,9 @@ A simple API sample made in Node.js, Express, and MongoDb to be used as a base c
 - [x] Simple CRUD operations for Users REST API using Express and Mongoose
 - [x] Secure the API (Authentication and Authorization concerns)
 - [X] Research and apply good practices on top of a NodeJS Express API 
-- [ ] Apply some resilience layer on top of database connection (maybe using some sort of circuit breaker)
+- [x] ~~Apply some resilience layer on top of database connection (maybe using some sort of circuit breaker)~~*¹
 - [ ] (Optional) Create a UI for the API before the migration to AWS to test some integrations in a real-world scenario, (eg. CORS, Firebase Authentication)
-- [ ] Migrate the MongoDB workload to AWS, setting up a Multi AZ infrastructure to provide High Availability
+- [X] Migrate the MongoDB workload to AWS, setting up a Multi AZ infrastructure to provide High Availability
 - [ ] Migrate the Users microservice to AWS in smalls Linux Machines - ASG, ELB
 - [ ] Set up a Fault Tolerant enviromnent for the API, by using at least 3 AZ in a Region/VPC (ELB).  
 - [ ] Set up Observability in the application at general, using AWS X-Ray, CloudTrail, VPC Flow Logs, and (maybe) ELK Stack.
@@ -35,7 +35,7 @@ We need to improve our REST implementation as well, to reach the level 3 of Rich
 ### Secure the API (Authentication and Authorization concerns) - *v2.0.0*
 
 We have a common user authentication flow leveraging JWT implementation, may be used for the production stage of small apps.
-
+Apply some resilience layer on top of database
 User management and authentication tasks usually comes with lots of undesirables time-efforts, and complexities, so, doesn't worth waste so much time on a sample of implementation of it, it's always a good idea we consider an "Authentication as a Service" Providers like Auth0, Firebase, AWS Cognito and read their docs, this way we can focus on our business goals.
 > But a solid understanding of OAuth2 and OpenID specification will be so helpful in your life...
  
@@ -153,3 +153,37 @@ even start spreading lots of `console.log` in our app.
 
 > I won't do any application architecture decisions here, the better way to do that, is in another repository, focused 
 on the architecture itself.
+
+### Apply some resilience layer on top of database connection (maybe using some sort of circuit breaker)
+> There is no need for us to handle such thing, mongoose take care of it already, you may adjust some advanced options though
+
+### Migrate the MongoDB workload to AWS, setting up a Multi AZ infrastructure to provide High Availability
+
+To have any kind of ready-to-production database prefer to move towards a fully managed service, AWS does not offer 
+a service like this for MongoDB, and the most popular way to achieve this in AWS today is through **MongoDB Atlas**.
+
+MongoDB Atlas has a free tier, but you should not use it for production workloads at all. 
+To attend a reliable and high scalable production workload at general our database infrastructure would need to have at minimum a 
+Master and two Slaves hosts all in separated AZ with Multi-AZ failover enabled _(with Read Replicas sometimes)_, plus 
+we'll have a significant performance improvement by hitting our database through `VPC Endpoints` (for VPC internal communication), 
+instead of going over to the public internet to reach our database.
+
+To reach the goal above in MongoDB Atlas we would need to have an `M10 Dedicated Cluster` - that offers 2 GB RAM, 10 GB of storage, 100 IOPs,  running in an isolated VPC with VPC Peering _(and VPC Endpoint)_ enabled.
+The estimated price for this 3-node replica set is 57 USD per month, despite the costs is not the focus of this project, I can't avoid some comparison with others AWS Database as a service solutions.
+
+- Atlas X AWS DynamoDb - We can reach much more capacity in terms of Data Storage, Operations per second, and high scalability in DynamoDB, by a much smaller price, but I believe that MongoDB offers better ORMs options like `mongoose` that help us in terms of development effort.
+> We may end up using a Redis cache layer to avoid hits in our database all the time, it's a very common pattern regardless of our database solution, it will incur in costs and development effort increases. In AWS DynamoDB we can use AWS DAX Accelerator that is a cache layer for DynamoDB and can improve our queries from milliseconds to microseconds without coding changes needed by the half of price of a MongoDB Atlas minimal production settings.
+
+- Atlas X AWS DocumentDB - AWS DocumentDB is a MongoDB-compatible fully managed Database-as-a-service product, but the initial costs are so high, that won't worth compare it, it's a product for Big Data solutions. I'm just pointing it here because of the MongoDB compatibilities.  
+
+- Atlas X Amazon Aurora Serverless - If you're willing to go with `sequelize` relational ORM, Amazon Aurora is your best option, mainly for early stages projects or MVPs that you don't know your workload yet. You'll have a fully managed and high available database with serverless pricing model, it means in short terms you'll pay for resources that are consumed while your DB is active only, not for the databases hosts provisioned that needs to be up and running all the time. 
+
+- Atlas X Custom MongoDB cluster - You may build your Replica Set with minimal effort by using a `CloudFormation` template, AWS offers a good one also you can find great options at the community, including `Terraform` templates, plus you can use a MongoDB Certified by Bitnami AMI as a host instead of a fresh EC2 in these templates. Optionally you can set up an AWS Backup on your EC 2 hosts, and then you may update the `CloudFormation` templates that you've used if it is not already included.
+The cons here are that you won't have a fully managed service, of course, but the cluster was configured by one. You can start by using an infrastructure-as-a-code template and later move towards a fully managed product like MongoDB Atlas, though.
+
+> For the sake of simplicity, I'll use MongoDB Atlas free-tier at this project.
+
+
+
+
+
