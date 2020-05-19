@@ -1,5 +1,6 @@
 # SimpleUsersAPI.NodeJS.Express
-A simple API sample made in Node.js, Express, and MongoDb to be used as a base case to other cases.
+A zero to master API made in Node.js, Express, MongoDb, and AWS.
+
 
 ## Agenda
 - [x] Simple CRUD operations for Users REST API using Express and Mongoose
