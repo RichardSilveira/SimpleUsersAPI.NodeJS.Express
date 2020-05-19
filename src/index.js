@@ -6,6 +6,8 @@ const mongoose = require('mongoose');
 const helmet = require('helmet');
 const cors = require('cors');
 const { HealthCheckError } = require('@godaddy/terminus');
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('../UsersAPISpecs.json');
 const {
   stage, usersApiConfig, mongodbConfig, jwtConfig,
 } = require('./config/config');
@@ -16,6 +18,7 @@ const handleSystemHealth = require('./lib/systemHealthHandler');
 const app = express();
 const PORT = usersApiConfig.port;
 
+app.use('/v1/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 /* Client must add header "Accept-Encoding: gzip,deflate"
   note: may your Reverse Proxy should do this work for you */

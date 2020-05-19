@@ -37,7 +37,7 @@ const config = convict({
     },
     baseUri: {
       doc: 'Base Url as follows: https://localhost:4000/v1',
-      format: 'int',
+      format: String,
       default: null,
     },
   },
