@@ -9,6 +9,7 @@ A zero to master API made in Node.js, Express, MongoDb, and AWS.
 - [x] ~~Apply some resilience layer on top of database connection (maybe using some sort of circuit breaker)~~*¹
 - [ ] (Optional) Create a UI for the API before the migration to AWS to test some integrations in a real-world scenario, (eg. CORS, Firebase Authentication)
 - [X] Migrate the MongoDB workload to AWS, setting up a Multi AZ infrastructure to provide High Availability
+- [x] Configure an OpenAPI Specification work environment
 - [ ] Migrate the Users microservice to AWS in smalls Linux Machines - ASG, ELB
 - [ ] Set up a Fault Tolerant enviromnent for the API, by using at least 3 AZ in a Region/VPC (ELB).  
 - [ ] Set up Observability in the application at general, using AWS X-Ray, CloudTrail, VPC Flow Logs, and (maybe) ELK Stack.
@@ -45,11 +46,11 @@ User management and authentication tasks usually comes with lots of undesirables
 All instructions of section 1 are applied here, plus you may import the postman collection again 'cause it was updated with the new `register` and `login` endpoints.
 - You need to call the `register`, and then `login` and take the `token` response and use it as `Authorization: JWT <token>` HTTP header for all the endpoints that are all secured now.
 
-### Research and apply good practices on top of a NodeJS Express API - v3.*
+### Research and apply good practices on top of a NodeJS Express API - *v3..*
 
 How it is a huge topic, I split it up to some releases.
 
-#### Asynchronous methods and REST - v3.0.0
+#### Asynchronous methods and REST - *v3.0.0*
 
 How Node.js is a single threaded framework that works on top of the delegation of tasks to the `Event Loop` 
 we need to take care about our synchronous operations (eg. API, Database Calls) to avoid blocking of our app, 
@@ -72,7 +73,7 @@ We need to work with an OpenApi spec and still talking about REST APIs, providin
 
 Just a note here, you'll need to import the updated POSTMAN collection again. 
 
-#### Security Aspects and better general project organization - v3.1.1
+#### Security Aspects and better general project organization - *v3.1.1*
 
 Important security aspects to handle attacks as _Cross Site Request Forgery (CSRF)_, and _CORS_ settings are Ok now. 
 > We need to go back here when a UI will have to integrate with this API
@@ -88,7 +89,7 @@ the values that should be stored as environment variables (such as keys/secrets/
 and the others values that there is no problem to reveal them among other team members can be stored in files like 
 `development.json` and `production.json` under the `config`directory. 
 
-#### Clustering in Node.js with PM2 - v3.2.0
+#### Clustering in Node.js with PM2 - *v3.2.0*
 
 > Tl;dr: No multi-threading model, however you need to scale your app earlier with Node.js Cluster model, 
 >but you don't need to do it on your own, you may use a **Node Process Manager** like `PM 2` instead.     
@@ -130,7 +131,7 @@ I made a choice to still use `nodemon` for development, so I created a new npm s
 > I'm using the main settings needed for a ready-to-production app.
 >
 
-#### Health Check and Graceful Shutdown - v3.3.0
+#### Health Check and Graceful Shutdown - *v3.3.0*
 
 - Health Checks - To signalize to your Load Balancers that an instance is fine and there is no need to restarts 
 by checking whatever you want eg. your Db connections.
@@ -179,7 +180,7 @@ The estimated price for this 3-node replica set is **57 USD per month**, despite
 - **Atlas X AWS DocumentDB** - AWS DocumentDB is a MongoDB-compatible fully managed Database-as-a-service product, but the initial costs are so high, that won't worth compare it, it's a product for Big Data solutions. I'm just pointing it here because of the MongoDB compatibilities.  
 
 - **Atlas X Amazon Aurora Serverless** - If you're willing to go with `sequelize` relational ORM, Amazon Aurora is your best option, mainly for early stages projects or MVPs that you don't know your workload yet. You'll have a fully managed and high available database with serverless pricing model, it means in short terms you'll pay for resources that are consumed while your DB is active only, not for underutilized databases hosts provisioned that needs to be up and running all the time. 
-Plus, after some evolving of your solution and knowledge of your workload, you can decrease your costs by purchasing Reserved Instances
+Plus, after some evolving of your solution and knowledge of your workload, you can decrease your costs by purchasing Reserved Instances.
 
 - **Atlas X Custom MongoDB cluster** - You may build your Replica Set with minimal effort by using a `CloudFormation` template, AWS offers a good one also you can find great options at the community, including `Terraform` templates, plus you can use a MongoDB Certified by Bitnami AMI as a host instead of a fresh EC2 in these templates. Optionally you can set up an AWS Backup on your EC 2 hosts, and then you may update the `CloudFormation` templates that you've used if it is not already included.
 The cons here are that you won't have a fully managed service, of course, but the cluster was configured by one. You can start by using an infrastructure-as-a-code template and later move towards a fully managed product like MongoDB Atlas, though.
@@ -187,6 +188,11 @@ The cons here are that you won't have a fully managed service, of course, but th
 > For the sake of simplicity, I'll use MongoDB Atlas free-tier at this project.
 
 
+### Configure an OpenAPI Specification work environment - *v4.0.0*
 
+A rock-solid API must start by your design, team collaboration, mocking, and approval thereafter we can start the hands-on it.
+Engage the team to develop by using that approach is beneficial in so many ways and to enable it I like to use a GUI editor, my preferred is [Apicurio Studio](https://www.apicur.io/) a web-based OpenAPI editor that enables team collaboration and mock of your API.
 
-
+[Apicurio - How a OpenAPI GUI can help us](public/apicurioide.jpg)
+ 
+Now, we can check and test our API through the link `http://localhost:4000/v1/api-docs/`

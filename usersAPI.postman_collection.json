@@ -15,7 +15,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"firstName\": \"Richard\",\n\t\"lastName\": \"Silveira\"\n}",
+					"raw": "{\n\t\"firstName\": \"Richard\",\n\t\"lastName\": \"Silveira\",\n\t\"email\": \"richardsilveira@gmail.com\",\n\t\"phone\": \"+550651111111\",\n\t\"country\": \"Brazil\",\n\t\"state\": \"Mato Grosso\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -38,6 +38,9 @@
 		},
 		{
 			"name": "localhost:4000/users",
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {}
+			},
 			"request": {
 				"method": "GET",
 				"header": [

@@ -1,0 +1,324 @@
+{
+    "openapi": "3.0.2",
+    "info": {
+        "title": "Users API",
+        "version": "1.0.0",
+        "description": "A zero to master sample API made in Node.js, Express, MongoDB, and AWS."
+    },
+    "servers": [
+        {
+            "url": "http://localhost:{port}/{version}",
+            "description": "User API main server",
+            "variables": {
+                "port": {
+                    "default": "4000"
+                },
+                "version": {
+                    "default": "v1"
+                }
+            }
+        }
+    ],
+    "paths": {
+        "/users": {
+            "summary": "Path used to manage the list of users.",
+            "description": "The REST endpoint/path used to list and create zero or more `User` entities.  This path contains a `GET` and `POST` operation to perform the list and create tasks, respectively.",
+            "servers": [
+                {
+                    "url": "http://localhost:{port}/{version}",
+                    "description": "",
+                    "variables": {
+                        "port": {
+                            "default": "4000"
+                        },
+                        "version": {
+                            "default": "v1"
+                        }
+                    }
+                }
+            ],
+            "get": {
+                "tags": [
+                    "users"
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/UserRequest"
+                                    }
+                                }
+                            }
+                        },
+                        "description": "Successful response - returns an array of `UserResponse` entities."
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    }
+                },
+                "summary": "List All users",
+                "description": "Gets a list of all `UserResponse` entities."
+            },
+            "post": {
+                "requestBody": {
+                    "description": "A new `UserRequest` to be created.",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UserRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "tags": [
+                    "users"
+                ],
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UserResponse"
+                                },
+                                "examples": {
+                                    "UserResponseSample": {
+                                        "value": {
+                                            "create_at": "2020-05-19T19:35:53.992Z",
+                                            "_id": "5ec4351c71955d52f820ff98",
+                                            "firstName": "Richard",
+                                            "lastName": "Silveira",
+                                            "email": "richardsilveira@gmail.com",
+                                            "phone": "+550651111111",
+                                            "country": "Brazil",
+                                            "state": "Mato Grosso",
+                                            "__v": 0
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "description": "Successful response."
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/BadRequest"
+                    }
+                },
+                "operationId": "createUser",
+                "summary": "Create a User",
+                "description": "Creates a new instance of a `User`."
+            }
+        },
+        "/users/{userId}": {
+            "summary": "Path used to manage a single User.",
+            "description": "The REST endpoint/path used to get, update, and delete single instances of an `User`.  This path contains `GET`, `PUT`, and `DELETE` operations used to perform the get, update, and delete tasks, respectively.",
+            "servers": [
+                {
+                    "url": "http://localhost:{port}/{version}",
+                    "description": "",
+                    "variables": {
+                        "port": {
+                            "default": "4000"
+                        },
+                        "version": {
+                            "default": "v1"
+                        }
+                    }
+                }
+            ],
+            "get": {
+                "tags": [
+                    "users"
+                ],
+                "parameters": [
+                    {
+                        "name": "userId",
+                        "description": "A unique identifier for a `User`.",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UserRequest"
+                                }
+                            }
+                        },
+                        "description": "Successful response - returns a single `User`."
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    }
+                },
+                "summary": "Get a User by ID",
+                "description": "Gets the details of a single instance of a `UserResponse`."
+            },
+            "put": {
+                "requestBody": {
+                    "description": "Updated `UserRequest` information.",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UserRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "tags": [
+                    "users"
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UserResponse"
+                                }
+                            }
+                        },
+                        "description": "Successful response."
+                    }
+                },
+                "summary": "Update a User",
+                "description": "Updates an existing `User`."
+            },
+            "delete": {
+                "tags": [
+                    "users"
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Successful response."
+                    }
+                },
+                "operationId": "deleteUser",
+                "summary": "Delete a User",
+                "description": "Deletes an existing `User`."
+            },
+            "parameters": [
+                {
+                    "name": "userId",
+                    "description": "A unique identifier for a `User`.",
+                    "schema": {
+                        "type": "string"
+                    },
+                    "in": "path",
+                    "required": true
+                }
+            ]
+        }
+    },
+    "components": {
+        "schemas": {
+            "UserResponse": {
+                "title": "User Response Model",
+                "description": "User Response Model",
+                "type": "object",
+                "properties": {
+                    "create_at": {
+                        "format": "date-time",
+                        "type": "string"
+                    },
+                    "_id": {
+                        "type": "string"
+                    },
+                    "firstName": {
+                        "type": "string"
+                    },
+                    "lastName": {
+                        "type": "string"
+                    },
+                    "email": {
+                        "type": "string"
+                    },
+                    "phone": {
+                        "type": "string"
+                    },
+                    "country": {
+                        "type": "string"
+                    },
+                    "state": {
+                        "type": "string"
+                    },
+                    "__v": {
+                        "format": "int32",
+                        "type": "integer"
+                    }
+                },
+                "example": {
+                    "create_at": "2020-05-19T19:35:53.992Z",
+                    "_id": "5ec4351c71955d52f820ff98",
+                    "firstName": "Richard",
+                    "lastName": "Silveira",
+                    "email": "richardsilveira@gmail.com",
+                    "phone": "+550651111111",
+                    "country": "Brazil",
+                    "state": "Mato Grosso",
+                    "__v": 0
+                }
+            },
+            "UserRequest": {
+                "title": "User Request Model",
+                "description": "User Request Model",
+                "required": [
+                    "firstName",
+                    "lastName"
+                ],
+                "type": "object",
+                "properties": {
+                    "firstName": {
+                        "description": "",
+                        "type": "string"
+                    },
+                    "lastName": {
+                        "type": "string"
+                    },
+                    "email": {
+                        "type": "string"
+                    },
+                    "phone": {
+                        "type": "string"
+                    },
+                    "country": {
+                        "type": "string"
+                    },
+                    "state": {
+                        "type": "string"
+                    }
+                },
+                "example": {
+                    "firstName": "Richard",
+                    "lastName": "Silveira",
+                    "email": "richardsilveira@gmail.com",
+                    "phone": "+550651111111",
+                    "country": "Brazil",
+                    "state": "Mato Grosso"
+                }
+            }
+        },
+        "responses": {
+            "NotFound": {
+                "description": "Returns an empty array"
+            },
+            "BadRequest": {
+                "description": "Returns an raw error message at response"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "users",
+            "description": "Everything about Users"
+        }
+    ]
+}
