@@ -9,9 +9,9 @@ hooks:
       timout: 300
       runas: root
     - location: scripts/start_server
-      timeout: 60
-      runas: root
-  ApplicationStop:
-    - location: scripts/stop_server
       timeout: 300
       runas: root
+#  ApplicationStop:
+#    - location: scripts/stop_server
+#      timeout: 300
+#      runas: root
