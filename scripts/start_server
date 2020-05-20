@@ -1,2 +1,3 @@
 #!/bin/bash
-npm start
+cd www
+sudo npm start
