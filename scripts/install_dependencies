@@ -1,3 +1,11 @@
 #!/bin/bash
-cd /www
-sudo npm install
+cd www/
+sudo su
+echo -e "### node version: `node -v`"
+echo -e "### npm version: `npm -v`"
+echo -e "### global packages: \n`npm list -g --depth=0`"
+echo -e "### All files in www (included the hidden ones): \n `ls -a`"
+echo "### npm install"
+npm install
+echo "### npm link to global packages"
+npm link pm2
