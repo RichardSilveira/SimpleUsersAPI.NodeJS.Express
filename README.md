@@ -10,11 +10,12 @@ A zero to master API made in Node.js, Express, MongoDb, and AWS.
 - [ ] (Optional) Create a UI for the API before the migration to AWS to test some integrations in a real-world scenario, (eg. CORS, Firebase Authentication)
 - [X] Migrate the MongoDB workload to AWS, setting up a Multi AZ infrastructure to provide High Availability
 - [x] Configure an OpenAPI Specification work environment
-- [ ] Migrate the Users microservice to AWS in smalls Linux Machines - ASG, ELB
-- [ ] Set up a Fault Tolerant enviromnent for the API, by using at least 3 AZ in a Region/VPC (ELB).  
+- [x] Migrate the Users microservice to AWS in smalls Linux Machines
+- [x] Set up a Fault Tolerant enviromnent for the API, by using at least 3 AZ in a Region/VPC (ELB).  
+- [x] Configure and integrate CodeDep   loy Blue/Green Deployment with Auto-Scaling and Application Load Balancer
 - [ ] Set up Observability in the application at general, using AWS X-Ray, CloudTrail, VPC Flow Logs, and (maybe) ELK Stack.
 - [ ] Provide infrastructure as a service by creating a CloudFormation Stack of all the stuffs
-- [ ] Configure a CI/CD with Blue/Green Deployment (use Route 53 weighted routing policy) (AWS or Team City?)
+- [ ] ~~Configure a CI/CD with Blue/Green Deployment (use Route 53 weighted routing policy) (AWS or Team City?)~~ 
 - [ ] Add a Cache layer with Redis (Write-Through or Lazy Loading strategy) - maybe before publish the API in AWS
 - [ ] Containerize the Users API microservice with Docker and update all AWS enviromnent (using AWS Fargate) or by using ECS
 - [ ] Create a sample of how all of it can be done with Serverless in AWS with API Gateway, Lambda, DynamoDb?
@@ -196,3 +197,35 @@ Engage the team to develop by using that approach is beneficial in so many ways 
 [Apicurio - How a OpenAPI GUI can help us](public/apicurioide.jpg)
  
 Now, we can check and test our API through the link `http://localhost:4000/v1/api-docs/`
+
+
+### Migrate the Users microservice to AWS in smalls Linux Machines - *v5.0.0*
+
+Steps to move forward till reach a production-ready infraestructure
+
+- First, launch your ec2, install everything needed and copy your app to it and let your app up and running
+- I'll need to talk about Baked/Golden AMI (delete your app, create an AMI and create launch an instance from it and 
+    deploy your app again (by simple file copying))
+
+- Delete all your app folder entirelly again, and the configure CodeDeploy
+- At CodeDeploy, talk about let it running locally for tests
+    - Talk about CodeDeploy not developer-friendly service (e.g. needed to install cloudwatch agent to check the logs) 
+        - main reason for need to install it locally, though
+
+- Once working properly, create your CodeDeploy enviroment via AWS Console (SingleInstance)
+    - Permissions settings
+    - CodeDeploy Agent installed through EC 2 UserData (not in AMI directly 'cause is region specific and CodeDeploy Agent updates, AWS recommendations)
+  
+- When your Single Instance with CodeDeploy is working properly, then move to the next topic, Auto-Scaling + ELB
+- CodeDeploy - Create a new Distribution for the new ASG + ELB settings (remember how tagging is important here) 
+
+_TODO: It worth talk about AWS WAF?_
+_TODO: It worth talk about AWS CloudFront Distributions for EC 2?_
+
+_TODO: Show off Route 53 routing policies and how they can be used in Global distributed applications (Blue/Green deployments in Croos-Region app distributions - less usual (maybe using weighted routin and Failover for Disaster Recovery)_ (Notes only will be enough)
+    // To such thing, it's important to work with CloudFormation, talk a little about it (Cross-Region distribution)    
+
+
+_TODO: Add CodeBuild (CI/CD) at least for integration tests (hitting the database)_ - But not so important...
+ 
+
