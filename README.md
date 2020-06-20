@@ -10,14 +10,15 @@ A zero to master API made in Node.js, Express, MongoDb, and AWS.
 - [ ] (Optional) Create a UI for the API before the migration to AWS to test some integrations in a real-world scenario, (eg. CORS, Firebase Authentication)
 - [X] Migrate the MongoDB workload to AWS, setting up a Multi AZ infrastructure to provide High Availability
 - [x] Configure an OpenAPI Specification work environment
-- [x] Migrate the Users microservice to AWS in smalls Linux Machines
-- [x] Set up a Fault Tolerant enviromnent for the API, by using at least 3 AZ in a Region/VPC (ELB).  
-- [x] Configure and integrate CodeDep   loy Blue/Green Deployment with Auto-Scaling and Application Load Balancer
+- [x] Migrate the Users' microservice to AWS in smalls Linux Machines
+- [x] Configure Continuous Deployment with AWS CodeDeploy
+- [x] Set up a Fault Tolerant environment for the API, by using at least 3 AZ in a Region/VPC (ELB).  
+- [x] Integrate CodeDeploy Blue/Green Deployment with Auto-Scaling and Application Load Balancer
 - [ ] Set up Observability in the application at general, using AWS X-Ray, CloudTrail, VPC Flow Logs, and (maybe) ELK Stack.
 - [ ] Provide infrastructure as a service by creating a CloudFormation Stack of all the stuffs
 - [ ] ~~Configure a CI/CD with Blue/Green Deployment (use Route 53 weighted routing policy) (AWS or Team City?)~~ 
 - [ ] Add a Cache layer with Redis (Write-Through or Lazy Loading strategy) - maybe before publish the API in AWS
-- [ ] Containerize the Users API microservice with Docker and update all AWS enviromnent (using AWS Fargate) or by using ECS
+- [ ] Containerize the Users API microservice with Docker and update all AWS environment (using AWS Fargate) or by using ECS
 - [ ] Create a sample of how all of it can be done with Serverless in AWS with API Gateway, Lambda, DynamoDb?
 
 ### Simple CRUD operations for Users REST API using Express and Mongoose - *v1.0.1*
@@ -33,7 +34,7 @@ We need to improve our REST implementation as well, to reach the level 3 of Rich
 - Execute `docker-compose up -d` at root level to run `mongo` and `mongo-express` services.
 - Then you can hit `http://localhost:8081` in your browser to all mongodb management tasks needed for this project.
 - Run the app with `npm start` =P
-> Note: There is a postman collection (with all used endpoinst) at root level tha can be imported. 
+> Note: There is a postman collection (with all used endpoint) at root level tha can be imported. 
 
 ### Secure the API (Authentication and Authorization concerns) - *v2.0.0*
 
@@ -134,7 +135,7 @@ I made a choice to still use `nodemon` for development, so I created a new npm s
 
 #### Health Check and Graceful Shutdown - *v3.3.0*
 
-- Health Checks - To signalize to your Load Balancers that an instance is fine and there is no need to restarts 
+- Health Checks - To signalize to your Load Balancer that an instance is fine and there is no need to restarts 
 by checking whatever you want eg. your Db connections.
 
 - Graceful Shutdown - To have a chance to dispose of all your unmanaged resources by Node.js before your app 
@@ -199,33 +200,80 @@ Engage the team to develop by using that approach is beneficial in so many ways 
 Now, we can check and test our API through the link `http://localhost:4000/v1/api-docs/`
 
 
-### Migrate the Users microservice to AWS in smalls Linux Machines - *v5.0.0*
+### Migrate the Users' microservice to AWS in smalls Linux Machines - *v5.0.0*
 
-Steps to move forward till reach a production-ready infraestructure
+Moving from zero to a master production-ready, high-available, and elastic infrastructure is kind a journey.
+I can't go deep on it _I'll split all of it in some articles later_, but I'll focus on all pieces that matters
+for the purpose of this project, but still I'll show off all main details that we come across while setting up our application stuff.
 
-- First, launch your ec2, install everything needed and copy your app to it and let your app up and running
-- I'll need to talk about Baked/Golden AMI (delete your app, create an AMI and create launch an instance from it and 
-    deploy your app again (by simple file copying))
+#### First things first 
 
-- Delete all your app folder entirelly again, and the configure CodeDeploy
-- At CodeDeploy, talk about let it running locally for tests
-    - Talk about CodeDeploy not developer-friendly service (e.g. needed to install cloudwatch agent to check the logs) 
-        - main reason for need to install it locally, though
+Before thinking about scalability, load-balancing, high-availability, and disaster recovery concerns, we need to have our app up and running
+in a single AWS EC2 instance.
 
-- Once working properly, create your CodeDeploy enviroment via AWS Console (SingleInstance)
-    - Permissions settings
-    - CodeDeploy Agent installed through EC 2 UserData (not in AMI directly 'cause is region specific and CodeDeploy Agent updates, AWS recommendations)
-  
-- When your Single Instance with CodeDeploy is working properly, then move to the next topic, Auto-Scaling + ELB
-- CodeDeploy - Create a new Distribution for the new ASG + ELB settings (remember how tagging is important here) 
-
-_TODO: It worth talk about AWS WAF?_
-_TODO: It worth talk about AWS CloudFront Distributions for EC 2?_
-
-_TODO: Show off Route 53 routing policies and how they can be used in Global distributed applications (Blue/Green deployments in Croos-Region app distributions - less usual (maybe using weighted routin and Failover for Disaster Recovery)_ (Notes only will be enough)
-    // To such thing, it's important to work with CloudFormation, talk a little about it (Cross-Region distribution)    
+Launch your ec2, install everything needed and copy your app to it and ensure your app is up and running.
+> Tip: Prefer use an Amazon Linux 2 AMI to launch your EC2
+>> Don't worry so much about Security concerns here, just focus on let your app in a valid state as soon as possible
+>
+>> Create a resource role for your EC 2 (later we'll add some policies to it)
+> 
+>> For this kind of apps I like to use general purpose t3 instance family (`micro`, to be more specific), 
+>because it´s cheaper but network-efficient, and burstable.
 
 
-_TODO: Add CodeBuild (CI/CD) at least for integration tests (hitting the database)_ - But not so important...
- 
+#### Baked/Golden AMI
+
+Imagine now if you need to recreate your EC 2 again, installing Node.js, PM2 among other stuff or even worst, imagine if you need do it
+every time you need to create a new EC2 triggered by your Auto Scaling activity by running those scripts in `UserData` section in the `LaunchTemplate` settings.
+Think about how long it takes...
+
+To handle it, we use a strategy called **Golden AMI** that consists in a 
+prebuilt application stored inside an AMI to save time when you are provisioning new instances in your ASG.
+
+To save your time I've created a Golden AMI for Node.js apps, [1-Click Ready Node.js LTS on Amazon Linux 2](https://aws.amazon.com/marketplace/pp/B08B7NBGN6)
+by using this AMI you'll have a "ready-to-production" Node.js server already configured.
+
+![1-Click Ready Node.js LTS on Amazon Linux 2](./public/AMIonMarketPlace.png)
+
+##### How should I use it?
+
+How the AMI name suggests, you need just launch your fresh EC 2 from this AMI. You will have an up and running EC 2 with Node.js LTS (stable version) with the PM 2 package installed globally.
+
+#### Golden AMI x npm global packages
+
+You could considerate some packages that you're using in your app locally as global packages, think about how you are
+using them in another apps, and how your devs/colleagues have those packages installed in theirs machines too.
+To clarify the idea, take a look at those node.js packages that we usually install as local packages, but we 
+always install them for each new app that we create _(almost time in the same version)_: [npm common packages list](https://www.one-tab.com/page/EWcOARW0TEKlIkBw-UOjIw).
+I'm listing `cors`, `bcrypt`, `helmet`, `pm2`, `convict`, and `body-parser` you'll notice which these packages' releases doesn't happen
+every week, it's more about month updates, and some packages like `helmet` - _a package that handle security concerns in your app_,
+as soon a breaking changing version has released, you'll probably like to update it in all app across your organization - _asap according to every single app, of course_.
+If you're thinking that I'm getting crazy, just note that `pm2` is usually installed as global _(check their docs and google it)_
+and now if packages like `convict`, `cors` or even `helmet` can't be shared across our apps in the same way as `pm2` does.
+
+**That is a polemic thread, there are pros and cons here**, I'm just point it as something to be considered, personally 
+I like to have `pm2`, and `helmet` _for **security/compliance** reasons_ as global and the others as local.
+
+> TL;DR: You may have cost savings by moving some of your packages as global, by reducing the deployment time of your app, 
+>this way you can update the ASG `scale out` policy to be executed whenever reach 85% of `CPU Utilization`, instead of 70%.
+
+
+### Configure Continuous Deployment with AWS CodeDeploy - *v5.1.0*
+
+Once you have your Node.js app running from a Golden AMI I recommend setting up your continuous deployment 
+via CodeDeploy and after your Single Instance with CodeDeploy is working properly 
+move to the next topic in your infrastructure settings, Auto-Scaling + ELB.
+> Note: You'll need to go back to CodeDeploy later to configure your Blue-Green Deployment over ASG.
+
+AWS CodeDeploy is a powerful service for automating deployments to Amazon EC2, AWS Lambda, and on-premises servers. However, it can take some effort to get complex deployments up and running or to identify the error in your application when something goes wrong.
+
+**The proper way to deal with CodeDeploy is by testing and debugging it locally and once everything working properly fire your deployment process in AWS CodeDeploy.**
+
+However, to have a CodeDeploy environment up and running locally is not so trivial, at least until now! :beers:
+
+<img align="left" width="100" height="100" src="https://awsmarketplace-publicassets.s3.amazonaws.com/codedeploy-docker.png"> I've created a docker image with an `EC 2 AmazonLinux 2` on it along with the `CodeDeploy Agent` _(and other stuff)_, 
+all instructions needed can be cheked at: [richardsilveira/amazonlinux2-codedeploy](https://hub.docker.com/repository/docker/richardsilveira/amazonlinux2-codedeploy)
+
+
+TODO: CodeDeploy agent - show my scripts at gist
 
