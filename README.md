@@ -12,7 +12,7 @@ A zero to master API made in Node.js, Express, MongoDb, and AWS.
 - [x] Configure an OpenAPI Specification work environment
 - [x] Migrate the Users' microservice to AWS in smalls Linux Machines
 - [x] Configure Continuous Deployment with AWS CodeDeploy
-- [x] Set up a Fault Tolerant environment for the API, by using at least 3 AZ in a Region/VPC (ELB).  
+- [x] Set up a Fault Tolerant environment for the API, by using at least 3 AZ in a Region/VPC (ELB)  
 - [x] Integrate CodeDeploy Blue/Green Deployment with Auto-Scaling and Application Load Balancer
 - [ ] Set up Observability in the application at general, using AWS X-Ray, CloudTrail, VPC Flow Logs, and (maybe) ELK Stack.
 - [ ] Provide infrastructure as a service by creating a CloudFormation Stack of all the stuffs
@@ -254,7 +254,7 @@ and now if packages like `convict`, `cors` or even `helmet` can't be shared acro
 **That is a polemic thread, there are pros and cons here**, I'm just point it as something to be considered, personally 
 I like to have `pm2`, and `helmet` _for **security/compliance** reasons_ as global and the others as local.
 
-> TL;DR: You may have cost savings by moving some of your packages as global, by reducing the deployment time of your app, 
+> **TL;DR:** You may have cost savings by moving some of your packages as global, by reducing the deployment time of your app, 
 >this way you can update the ASG `scale out` policy to be executed whenever reach 85% of `CPU Utilization`, instead of 70%.
 
 
@@ -271,9 +271,37 @@ AWS CodeDeploy is a powerful service for automating deployments to Amazon EC2, A
 
 However, to have a CodeDeploy environment up and running locally is not so trivial, at least until now! :beers:
 
-<img align="left" width="100" height="100" src="https://awsmarketplace-publicassets.s3.amazonaws.com/codedeploy-docker.png"> I've created a docker image with an `EC 2 AmazonLinux 2` on it along with the `CodeDeploy Agent` _(and other stuff)_, 
+<img align="left" width="100" height="100" src="https://awsmarketplace-publicassets.s3.amazonaws.com/codedeploy-docker.png"> I've created a docker image with an `AmazonLinux 2` instance on it along with the `CodeDeploy Agent` _(and other stuff)_, 
 all instructions needed can be cheked at: [richardsilveira/amazonlinux2-codedeploy](https://hub.docker.com/repository/docker/richardsilveira/amazonlinux2-codedeploy)
+*Note: Follow the instructions that I've prepared there and take a deeper look at my `appspec.yml` and the `scripts` files in this repository.*
+
+#### Points to note
+
+I'll show off some detailed points that are not so easy to find out, and which you may be would come across along your CodeDeploy environment settings journey. 
+
+##### IAM / Roles
+
+You'll need to attach a `Service Role` in your Deployment Group, and to integrate it with your Auto-Scaling Group environment you'll need to create one can be named *CodeDeployServiceRole*
+and attach to it the policies managed by AWS `AWSCodeDeployRole`, `AutoScalingFullAccess` plus a custom policy like this on my gist: [CodeDeployAdditionalPermissionsForEC2ASG](https://gist.github.com/RichardSilveira/0a5ba06fb3e5427cf2ce2254fe33251f).
 
 
-TODO: CodeDeploy agent - show my scripts at gist
+##### Tagging
+
+Tag your EC2 instances properly will help you in so many aspects, about CodeDeploy I always try to have two Deployment Groups for a single Application
+like so: _ProductionInstances-SingleMachine_ / _ProductionInstances_ and tagging my instances 
+help my here by letting CodeDeploy identify them by theirs tags.
+
+
+##### Discussion - CodeDeploy agent installation in UserData Scripts X Golden AMI
+
+You can install the CodeDeploy agent either as part of your Golden AMI or by User Data Scripts. 
+AWS doesn't recommend the installation as part of your Golden AMI because you'll need to update the Agent manually, 
+and you may face some issues at some point _(when you'll find out a need to update the agent)_ but you'll have a considerable time
+reduction at the deployment time, plus it is not a so bad practice, though.
+> See more about it on **_Ordering execution of launch script_** section at AWS docs [Under the Hood: AWS CodeDeploy and Auto Scaling Integration](https://aws.amazon.com/blogs/devops/under-the-hood-aws-codedeploy-and-auto-scaling-integration/)
+
+**Install script:** [EC2 User Data to Install the Code Deploy Agent](https://gist.github.com/RichardSilveira/376d863bb3e87fbf3b901eafb2a89898)
+
+
+#### Set up a Fault Tolerant environment for the API, by using at least 3 AZ in a Region/VPC (ELB) - *v5.2.0*
 
