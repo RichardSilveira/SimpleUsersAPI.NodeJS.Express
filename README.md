@@ -305,3 +305,21 @@ reduction at the deployment time, plus it is not a so bad practice, though.
 
 #### Set up a Fault Tolerant environment for the API, by using at least 3 AZ in a Region/VPC (ELB) - *v5.2.0*
 
+We'll build an elastic and high available environment in AWS like in the image bellow, but instead of two AZ, try to work with 3 AZ at minimum always, it's a common approach/best practice strategy for many scenarios about infrastructure scaling.  
+
+![asg-elb-diagram](./public/asg-elb-diagram.png)
+
+I don't want you bored, so now, I'll move fast through the key points of ASG + ELB at sequence.
+> I'll take notes only at properties that either you may face issues or I in cases that I feel a need to share some personal experience.
+
+##### ELB - Target Groups
+
+
+##### Create Load Balancer
+
+
+##### Create Auto Scaling Group
+
+
+#### Integrate CodeDeploy Blue/Green Deployment with Auto-Scaling and Application Load Balancer - *v5.3.0*
+
