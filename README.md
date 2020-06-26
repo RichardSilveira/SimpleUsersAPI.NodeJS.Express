@@ -212,6 +212,10 @@ Before thinking about scalability, load-balancing, high-availability, and disast
 in a single AWS EC2 instance.
 
 Launch your ec2, install everything needed and copy your app to it and ensure your app is up and running.
+
+You may create a _public_ directory at root level with `mkdir -m777 public` to be able to copy files from your machine with `scp` command using 
+a non root user like so `scp -i "MyKeyPair.pem" /path/SampleFile.txt ec2-user@ec2-54-56-251-246.compute-1.amazonaws.com:public/`
+
 > Tip: Prefer use an Amazon Linux 2 AMI to launch your EC2
 >> Don't worry so much about Security concerns here, just focus on let your app in a valid state as soon as possible
 >
@@ -258,7 +262,7 @@ I like to have `pm2`, and `helmet` _for **security/compliance** reasons_ as glob
 >this way you can update the ASG `scale out` policy to be executed whenever reach 85% of `CPU Utilization`, instead of 70%.
 
 
-### Configure Continuous Deployment with AWS CodeDeploy - *v5.1.0*
+### Configure Continuous Deployment with AWS CodeDeploy - *v6.0.0*
 
 Once you have your Node.js app running from a Golden AMI I recommend setting up your continuous deployment 
 via CodeDeploy and after your Single Instance with CodeDeploy is working properly 
@@ -303,19 +307,37 @@ reduction at the deployment time, plus it is not a so bad practice, though.
 **Install script:** [EC2 User Data to Install the Code Deploy Agent](https://gist.github.com/RichardSilveira/376d863bb3e87fbf3b901eafb2a89898)
 
 
-#### Set up a Fault Tolerant environment for the API, by using at least 3 AZ in a Region/VPC (ELB) - *v5.2.0*
+#### Set up a Fault Tolerant environment for the API, by using at least 3 AZ in a Region/VPC (ELB) - *v7.0.0*
 
 We'll build an elastic and high available environment in AWS like in the image bellow, but instead of two AZ, try to work with 3 AZ at minimum always, it's a common approach/best practice strategy for many scenarios about infrastructure scaling.  
 
 ![asg-elb-diagram](./public/asg-elb-diagram.png)
 
-I don't want you bored, so now, I'll move fast through the key points of ASG + ELB at sequence.
-> I'll take notes only at properties that either you may face issues or I in cases that I feel a need to share some personal experience.
+How I don't want you bored I'll move fast through the key points of ASG + ELB at sequence.
+> I'll take notes only at properties that either you may face issues or I in cases that I feel a needs to share some personal experience.
 
 ##### ELB - Target Groups
 
+- You can go with the almost defaults settings. Also, you'll need to use `/healthcheck` for the `Health check path`
+ and override the `Port` to use `3000` instead of the default `80` accordingly what was made in _Health Check and Graceful Shutdown_ section)
+
 
 ##### Create Load Balancer
+
+- Go with an Application Load Balancer with port 80 as your Listener;
+
+- Select at least three Availability Zones for your Load Balancer, plus, you must use them in your Auto Scaling later on.
+
+- In your Security Group settings, enable Port `80` and `3000` (the healthcheck server) from the internet _(0.0.0.0/0 and ::/0 ipv4 and ipv6 CIDRs)_ in `Inbound rules`.
+
+- Update the `Inbound rules` of the Security Group associated with your EC2 to allows ONLY HTTP traffic (port 80) coming from this Security Group you're using in ELB. 
+
+- You may enable AWS WAF (Web Aapplication Firewall) to protect your website from common attack techniques like SQL injection and Cross-Site Scripting (XSS)
+
+- You may enable AWS Config for compliance (you can define rules about AWS resource configurations and AWS Config will helps you to evaluate and take actions about it)
+
+
+##### ASG - Launch Templates
 
 
 ##### Create Auto Scaling Group
