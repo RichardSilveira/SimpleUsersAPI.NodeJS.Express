@@ -1,0 +1,7 @@
+#!/bin/bash
+cd www/
+echo -e "### All your linked global packages are correct?: \n`ls -a $(npm root -g)`"
+echo -e "### Check if your package.json file is fine: \n`cat package.json`"
+echo -e "### All files www (included the hidden ones): \n`ls -a`"
+echo -e `sudo npm run start`
+

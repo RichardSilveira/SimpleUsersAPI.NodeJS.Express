@@ -1,0 +1,4 @@
+#!/bin/bash
+alias echo="echo -e"
+cd www/
+sudo npm run stop

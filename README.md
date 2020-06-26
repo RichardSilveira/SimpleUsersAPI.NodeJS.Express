@@ -10,13 +10,15 @@ A zero to master API made in Node.js, Express, MongoDb, and AWS.
 - [ ] (Optional) Create a UI for the API before the migration to AWS to test some integrations in a real-world scenario, (eg. CORS, Firebase Authentication)
 - [X] Migrate the MongoDB workload to AWS, setting up a Multi AZ infrastructure to provide High Availability
 - [x] Configure an OpenAPI Specification work environment
-- [ ] Migrate the Users microservice to AWS in smalls Linux Machines - ASG, ELB
-- [ ] Set up a Fault Tolerant enviromnent for the API, by using at least 3 AZ in a Region/VPC (ELB).  
+- [x] Migrate the Users' microservice to AWS in smalls Linux Machines
+- [x] Configure Continuous Deployment with AWS CodeDeploy
+- [x] Set up a Fault Tolerant environment for the API, by using at least 3 AZ in a Region/VPC (ELB)  
+- [x] Integrate CodeDeploy Blue/Green Deployment with Auto-Scaling and Application Load Balancer
 - [ ] Set up Observability in the application at general, using AWS X-Ray, CloudTrail, VPC Flow Logs, and (maybe) ELK Stack.
 - [ ] Provide infrastructure as a service by creating a CloudFormation Stack of all the stuffs
-- [ ] Configure a CI/CD with Blue/Green Deployment (use Route 53 weighted routing policy) (AWS or Team City?)
+- [ ] ~~Configure a CI/CD with Blue/Green Deployment (use Route 53 weighted routing policy) (AWS or Team City?)~~ 
 - [ ] Add a Cache layer with Redis (Write-Through or Lazy Loading strategy) - maybe before publish the API in AWS
-- [ ] Containerize the Users API microservice with Docker and update all AWS enviromnent (using AWS Fargate) or by using ECS
+- [ ] Containerize the Users API microservice with Docker and update all AWS environment (using AWS Fargate) or by using ECS
 - [ ] Create a sample of how all of it can be done with Serverless in AWS with API Gateway, Lambda, DynamoDb?
 
 ### Simple CRUD operations for Users REST API using Express and Mongoose - *v1.0.1*
@@ -32,7 +34,7 @@ We need to improve our REST implementation as well, to reach the level 3 of Rich
 - Execute `docker-compose up -d` at root level to run `mongo` and `mongo-express` services.
 - Then you can hit `http://localhost:8081` in your browser to all mongodb management tasks needed for this project.
 - Run the app with `npm start` =P
-> Note: There is a postman collection (with all used endpoinst) at root level tha can be imported. 
+> Note: There is a postman collection (with all used endpoint) at root level tha can be imported. 
 
 ### Secure the API (Authentication and Authorization concerns) - *v2.0.0*
 
@@ -133,11 +135,11 @@ I made a choice to still use `nodemon` for development, so I created a new npm s
 
 #### Health Check and Graceful Shutdown - *v3.3.0*
 
-- Health Checks - To signalize to your Load Balancers that an instance is fine and there is no need to restarts 
+- Health Checks - In order to signalize to your Load Balancer that an instance is fine and there is no need to restarts 
 by checking whatever you want eg. your Db connections.
 
-- Graceful Shutdown - To have a chance to dispose of all your unmanaged resources by Node.js before your app 
-is killed eg. Db connections. 
+- Graceful Shutdown - In order to have a chance to dispose of all your unmanaged resources by Node.js before your app 
+is killed eg. Db connections.
 
 
 #### Final Notes
@@ -162,16 +164,16 @@ There is no need for us to handle such thing, mongoose take care of it already, 
 
 ### Migrate the MongoDB workload to AWS, setting up a Multi AZ infrastructure to provide High Availability
 
-To have any kind of ready-to-production database prefer to move towards a fully managed service, AWS does not offer 
+Prefer moving towards a fully managed service for "ready-to-production" databases, AWS does not offer 
 a service like this for MongoDB, and the most popular way to achieve this in AWS today is through **MongoDB Atlas**.
 
 MongoDB Atlas has a free tier, but you should not use it for production workloads at all. 
 To attend a reliable and high scalable production workload at general our database infrastructure would need to have at minimum a 
-Master and two Slaves hosts all in separated AZ with Multi-AZ failover enabled _(with Read Replicas sometimes)_, plus 
-we'll have a significant performance improvement by hitting our database through `VPC Endpoints` (for VPC internal communication), 
+Master and two Slaves hosts all in separated AZ with Multi-AZ failover enabled _(with Read Replicas sometimes)_, plus, 
+we would have a significant performance improvement by hitting our database through `VPC Endpoints` (for VPC internal communication), 
 instead of going over to the public internet to reach our database.
 
-To reach the goal above in MongoDB Atlas we would need to have an `M10 Dedicated Cluster` - that offers 2 GB RAM, 10 GB of storage, 100 IOPs,  running in an isolated VPC with VPC Peering _(and VPC Endpoint)_ enabled.
+In order to reach the goal above in MongoDB Atlas we would need to have an `M10 Dedicated Cluster` - that offers 2 GB RAM, 10 GB of storage, 100 IOPs,  running in an isolated VPC with VPC Peering _(and VPC Endpoint)_ enabled.
 The estimated price for this 3-node replica set is **57 USD per month**, despite the costs is not the focus of this project, I can't avoid some comparison with others AWS Database as a service solutions.
 
 - **Atlas X AWS DynamoDb** - We can reach much more capacity in terms of Data Storage, Operations per second, and high scalability in DynamoDB, by a much smaller price, but I believe that MongoDB offers better ORMs options like `mongoose` that help us in terms of development effort.
@@ -196,3 +198,195 @@ Engage the team to develop by using that approach is beneficial in so many ways 
 [Apicurio - How a OpenAPI GUI can help us](public/apicurioide.jpg)
  
 Now, we can check and test our API through the link `http://localhost:4000/v1/api-docs/`
+
+
+### Migrate the Users' microservice to AWS in smalls Linux Machines - *v5.0.0*
+
+Starting from scratch to a master production-ready, high-available, and elastic infrastructure is a journey. Therefore,
+I can't go deep on it _I'll go over it in some articles later_, but I'll focus on all pieces that matters
+for the purpose of this project, but still, I'll show off all main details that we may come across while setting up 
+our application.
+
+#### First things first 
+
+Before thinking about scalability, load-balancing, high-availability, and disaster recovery concerns, we need to have our app up and running
+in a single AWS EC2 instance.
+
+Launch your ec2, install everything needed and copy your app to it, thus, ensure your app is up and running.
+
+You may create a _public_ directory at root level with `mkdir -m777 public` to be able to copy files from your machine with `scp` command using 
+a non-root user like so `scp -i "MyKeyPair.pem" /path/SampleFile.txt ec2-user@ec2-54-56-251-246.compute-1.amazonaws.com:public/`
+
+> Tip: Prefer using an Amazon Linux 2 AMI to launch your EC2
+>> Don't worry so much about Security concerns here, just focus on letting your app in a valid state as soon as possible
+>
+>> Create a resource role for your EC 2 (later we'll add some policies to it)
+> 
+>> For this kind of apps I like to use general purpose t3 instance family (`micro`, to be more specific), 
+>because it´s cheaper but network-efficient, and burstable.
+
+
+#### Baked/Golden AMI
+
+Imagine now if you need to recreate your EC2, think about everything you'll need to install and settings up again. Plus, imagine all of it being done whenever a new EC2 is triggered by an Auto Scaling activity _by running tons of scripts in `UserData` section_.
+Think about how long it takes to create a new EC2 instance...
+
+The proper way to handle it is by a strategy called **Golden AMI** that consists of a 
+prebuilt application stored inside an AMI to save time whenever a new instances needs to be provisioned.
+
+To save your time I've created a Golden AMI for Node.js apps, [1-Click Ready Node.js LTS on Amazon Linux 2](https://aws.amazon.com/marketplace/pp/B08B7NBGN6)
+by using this AMI you'll have a "ready-to-production" Node.js server already configured.
+
+![1-Click Ready Node.js LTS on Amazon Linux 2](./public/AMIonMarketPlace.png)
+
+##### How should I use it?
+
+How the AMI name suggests, you need just launch your fresh EC 2 from this AMI. You will have an up and running EC 2 with Node.js LTS (stable version) with the PM 2 package installed globally.
+
+#### Golden AMI x npm global packages
+
+You should consider some packages that you're using in your app locally as global packages, think about how you are
+using them in another apps, and how your devs/colleagues have those packages installed in theirs machines too.
+Take a look at those node.js' packages that we have installed as local packages, but that is constantly installed using the same version and code for each new app that we have created: [npm common packages list](https://www.one-tab.com/page/EWcOARW0TEKlIkBw-UOjIw).
+
+I'm listing `cors`, `bcrypt`, `helmet`, `pm2`, `convict`, and `body-parser`, so you'll notice their packages' releases doesn't occur
+weekly, it's more about monthly updates, also, some packages as `helmet` - _a package that handles security concerns in your app_, as soon a breaking changing version has released, you'll probably like to update it in all app across your organization - _asap according to every single app, of course_.
+If you're thinking that I'm getting crazy, just notice that `pm2` is usually installed as global _(check their docs and google it)_, so
+packages like `convict`, `cors`, or even `helmet` can't be really shared across our apps in the same way as `pm2` does?
+
+**That is a polemic thread, there are pros and cons here**, I'm just point it out as something to be considered, personally 
+I like to have `pm2`, and `helmet` _for **security/compliance** reasons_ as global and the others as local.
+
+> **TL;DR:** You may have **cost savings** by moving some of your local packages as global because you'll decrease the overall deployment time of your app, 
+>this way you can update the ASG `scale out` policy to be executed whenever it reaches 85% of `CPU Utilization`, instead of 70% as an example.
+
+
+### Configure Continuous Deployment with AWS CodeDeploy - *v6.0.0*
+
+Once you have your Node.js app running from a Golden AMI I recommend setting up your continuous deployment 
+via CodeDeploy and after your Single Instance with CodeDeploy is working properly 
+move to the next topic in your infrastructure settings, Auto-Scaling + ELB.
+> Note: You'll need to go back to CodeDeploy later to configure your Blue-Green Deployment over ASG.
+
+AWS CodeDeploy is a powerful service for automating deployments to Amazon EC2, AWS Lambda, and on-premises servers. However, it can take some effort to get complex deployments up and running or to identify the error in your application when something goes wrong.
+
+**The proper way to deal with CodeDeploy is by testing and debugging it locally and once everything working properly fire your deployment process in AWS CodeDeploy.**
+
+However, to have a CodeDeploy environment up and running locally is not so trivial, at least until now! :beers:
+
+<img align="left" width="100" height="100" src="https://awsmarketplace-publicassets.s3.amazonaws.com/codedeploy-docker.png"> I've created a docker image with an `AmazonLinux 2` instance on it along with the `CodeDeploy Agent` _(and other stuff)_, 
+all instructions needed can be cheked at: [richardsilveira/amazonlinux2-codedeploy](https://hub.docker.com/repository/docker/richardsilveira/amazonlinux2-codedeploy)
+*Note: Follow the instructions that I've prepared there and take a deeper look at my `appspec.yml` and the `scripts` files in this repository.*
+
+#### Points to note
+
+I'll show off some detailed points that are not so easy to find out, and which you may be would come across along your CodeDeploy environment settings journey. 
+
+##### IAM / Roles
+
+You'll need to attach a `Service Role` in your Deployment Group, and to integrate it with your Auto-Scaling Group environment you'll need to create one can be named *CodeDeployServiceRole*
+and attach to it the policies managed by AWS `AWSCodeDeployRole`, `AutoScalingFullAccess` plus a custom policy like this on my gist: [CodeDeployAdditionalPermissionsForEC2ASG](https://gist.github.com/RichardSilveira/0a5ba06fb3e5427cf2ce2254fe33251f).
+
+
+##### Tagging
+
+Tag your EC2 instances properly will help you in so many aspects, about CodeDeploy I always try to have two Deployment Groups for a single Application
+like so: _ProductionInstances-SingleMachine_ / _ProductionInstances_ and tagging my instances 
+help my here by letting CodeDeploy identify them by theirs tags.
+
+
+##### Discussion - CodeDeploy agent installation in UserData Scripts X Golden AMI
+
+You can install the CodeDeploy agent either as part of your Golden AMI or by User Data Scripts. 
+AWS doesn't recommend the installation as part of your Golden AMI because you'll need to update the Agent manually, 
+and you may face some issues at some point _(when you'll find out a need to update the agent)_, although, you'll have a considerable time 
+reduction at the deployment time, thus, it is not a so bad practice.
+> See more about it on **_Ordering execution of launch script_** section at AWS docs [Under the Hood: AWS CodeDeploy and Auto Scaling Integration](https://aws.amazon.com/blogs/devops/under-the-hood-aws-codedeploy-and-auto-scaling-integration/)
+
+**Install script:** [EC2 User Data to Install the Code Deploy Agent](https://gist.github.com/RichardSilveira/376d863bb3e87fbf3b901eafb2a89898)
+
+
+#### Set up a Fault Tolerant environment for the API, by using at least 3 AZ in a Region/VPC (ELB) - *v7.0.0*
+
+We'll build an elastic and high available environment in AWS like in the image bellow, but instead of two AZ, try to work with 3 AZ at minimum always, it's a common approach/best practice strategy for many scenarios about infrastructure scaling.  
+
+![asg-elb-diagram](./public/asg-elb-diagram.png)
+
+How I don't want you bored I'll move fast through the key points of ASG + ELB at sequence.
+> I'll take notes only at properties that either you may face issues or I in cases that I feel a needs to share some personal experience.
+
+##### ELB - Target Groups
+
+- You can go with the almost defaults settings. Also, you'll need to use `/healthcheck` for the `Health check path`
+ and override the `Port` to use `3000` instead of the default `80` accordingly what was made in _Health Check and Graceful Shutdown_ section)
+
+
+##### Create Load Balancer
+
+- Go with an Application Load Balancer with port 80 as your Listener
+
+- Select at least three Availability Zones for your Load Balancer, plus, you must use them in your Auto Scaling later on.
+
+- In your Security Group settings, enable Port `80` and `3000` (the healthcheck server) from the internet _(0.0.0.0/0 and ::/0 ipv4 and ipv6 CIDRs)_ in `Inbound rules`.
+
+- Update the `Inbound rules` of the Security Group associated with your EC2 to allows ONLY HTTP traffic (port 80) coming from this Security Group you're using in ELB. 
+
+- You may enable AWS WAF (Web Aapplication Firewall) to protect your website from common attack techniques like SQL injection and Cross-Site Scripting (XSS)
+
+- You may enable AWS Config for compliance (you can define rules about AWS resource configurations and AWS Config will helps you to evaluate and take actions about it)
+
+
+##### ASG - Launch Templates
+
+- In order to be happy you must reference a Golden AMI for Node.js apps that I've created and gives me a review, [1-Click Ready Node.js LTS on Amazon Linux 2](https://aws.amazon.com/marketplace/pp/B08B7NBGN6).
+By using this AMI you'll have a "ready-to-production" Node.js server already configured. 
+
+- You must select the Security Group you've created for the EC 2 _(not that one for ALB)_
+
+- Tag your instances properly here _(I like to use `ProductName` and `Stage` tags)_.
+
+- Select a **Placement Group since beginning of your project**, for Startups and small project at early stages is common to use the `Spread` Placement Group, 
+for large apps, `Partition`, and `Cluster` strategy for Big Data/Machine Learning batch processes because of low network latency and high network throughput.
+> It's a summarized and opinionated point of view, I recommend a deep view of Placement Groups and how they work.
+
+- In order to **integrate your ASG with CodeDeploy**, you need to install the CodeDeploy agent, 
+therefore, at `User data` section use the script as follows: [EC2 User Data to Install the Code Deploy Agent](https://gist.github.com/RichardSilveira/376d863bb3e87fbf3b901eafb2a89898)
+
+##### Create Auto Scaling Group
+
+- Select the same AZ that you have selected in ALB settings.
+
+- For `Healh Check Type` select `ELB`.
+
+- Create a Scale-out and a Scale-in policy, to add and remove instances accordingly some CloudWatch threshold, e.g. CPU 
+_(for memory you'll need to install the Cloudwatch Agent)_
+> Pay attention at the cooldown period for your Scale-in policy, usually this time should be lower than that for scale-out policy to help you reduce costs significantly.
+
+- You can create a Scheduled scaling policy for predictable load changes, e.g. if your app has a traffic spike every day 
+at lunch-time, its a good idea to scale out some extra machines to handle the incoming load properly. 
+
+- Create a notification for launch/terminate, and fail activities sounds professional, but to do so, you'll need to create a Lambda Function to be subscribed to it, plus, coding this function to notify someone via Slack, Telegram, or other channels.
+
+
+#### Integrate CodeDeploy Blue/Green Deployment with Auto-Scaling and Application Load Balancer - *v8.0.0*
+
+You've already done the hard work at "Configure Continuous Deployment with AWS CodeDeploy" section _(at least you've read about it)_,
+now you'll just update some settings in order to deploy your application through a "Blue/Green" deployment strategy.
+
+> Don't forget to test your deployment local with Docker with: [richardsilveira/amazonlinux2-codedeploy](https://hub.docker.com/repository/docker/richardsilveira/amazonlinux2-codedeploy) 
+
+##### Blue/Green deployment explained
+
+Replaces the instances in the deployment group with new instances and deploys the latest application revision to them. After instances in the replacement environment are registered with a load balancer, instances from the original environment are deregistered and can be terminated. _-by AWS_. 
+  
+##### About the settings
+
+I'll show off quickly common settings for production apps.
+
+- Deployment type: `Blue/green`
+- Environment configuration: `Automatically copy Amazon EC2 Auto Scaling group`
+- Traffic rerouting: `Reroute traffic immediately`
+- Terminate the original instances in the deployment group: `1 hour`.
+- Deployment configuration: `CodeDeployDefault.OneAtTime`
+- Load balancer: Enable and select your ALB and its Target Group
+- Rollbacks: `Roll back when a deployment fails`

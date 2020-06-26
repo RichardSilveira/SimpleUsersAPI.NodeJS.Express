@@ -3,6 +3,6 @@
     "exp": 300
   },
   "usersApiConfig": {
-    "baseUri": "http://localhost:4000/v1/"
+    "baseUri": "http://localhost:80/v1/"
   }
 }
