@@ -14,7 +14,7 @@ A zero to master API made in Node.js, Express, MongoDb, and AWS.
 - [x] Configure Continuous Deployment with AWS CodeDeploy
 - [x] Set up a Fault Tolerant environment for the API, by using at least 3 AZ in a Region/VPC (ELB)  
 - [x] Integrate CodeDeploy Blue/Green Deployment with Auto-Scaling and Application Load Balancer
-- [ ] Set up Observability in the application at general, using AWS X-Ray, CloudTrail, VPC Flow Logs, and (maybe) ELK Stack.
+- [x] Set up Observability in the application at general, using AWS X-Ray, CloudTrail, VPC Flow Logs, and (maybe) ELK Stack.
 - [ ] Provide infrastructure as a service by creating a CloudFormation Stack of all the stuffs
 - [ ] ~~Configure a CI/CD with Blue/Green Deployment (use Route 53 weighted routing policy) (AWS or Team City?)~~ 
 - [ ] Add a Cache layer with Redis (Write-Through or Lazy Loading strategy) - maybe before publish the API in AWS
