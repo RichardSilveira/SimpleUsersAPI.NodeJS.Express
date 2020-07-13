@@ -390,3 +390,34 @@ I'll show off quickly common settings for production apps.
 - Deployment configuration: `CodeDeployDefault.OneAtTime`
 - Load balancer: Enable and select your ALB and its Target Group
 - Rollbacks: `Roll back when a deployment fails`
+
+
+#### Set up Observability in the application at general, using AWS X-Ray, CloudTrail, VPC Flow Logs, and (maybe) ELK Stack - *v9.0.0*
+
+##### Observability and AWS X-Ray
+**Observability** is a term related with logging, tracing, and analysis of microservices inter-communication 
+and user requests interactions with your application.
+In order to promote observability across your microservices, the better strategy nowadays in by the adoption 
+of an APM tool such as AWS X-Ray, Elastic APM, Dynatrace, and DataDog. An APM tool provides an easy way to instrument
+your app by offering an easy-to-use SDK.
+> Instrumentation means the measure of product’s performance, diagnose errors, and to write trace information.
+
+> Instead of coding here, it sounds a better idea have a dedicated repository about AWS X-Ray and other about Elasticsearch
+
+##### AWS CloudTrail
+You need to trace and audit not only your application' user interactions, but everything that is changed in your AWS account.
+To accomplish it, **AWS CloudTrail** should be your first choice. CloudTrail offers:
+* Internal monitoring of API calls being made
+* Audit changes to AWS Resources by your users
+* Visibility into user and resource activity
+
+AWS CloudTrail is enabled by default and you can either create a new trail or check for recent events that happened in your AWS account.
+
+##### Network monitoring and VPC Flow Logs
+
+**VPC Flow Logs** is an AWS service that enables you to do network monitoring. Build a network-monitored environment in AWS
+is a must-have activity about security and compliance of your infrastructure, also, at same time is a huge topic.
+I have wrote an article about it and as soon its done I'll reference it here.
+
+
+
