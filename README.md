@@ -400,7 +400,7 @@ and user requests interactions with your application.
 In order to promote observability across your microservices, the better strategy nowadays in by the adoption 
 of an APM tool such as AWS X-Ray, Elastic APM, Dynatrace, and DataDog. An APM tool provides an easy way to instrument
 your app by offering an easy-to-use SDK.
- > Instrumentation means the measure of product’s performance, diagnose errors, and to write trace information.
+> Instrumentation means the measure of product’s performance, diagnose errors, and to write trace information.
 
 > Instead of coding here, it sounds a better idea have a dedicated repository about AWS X-Ray and other about Elasticsearch
 
@@ -411,11 +411,13 @@ To accomplish it, **AWS CloudTrail** should be your first choice. CloudTrail off
 * Audit changes to AWS Resources by your users
 * Visibility into user and resource activity
 
+AWS CloudTrail is enabled by default and you can either create a new trail or check for recent events that happened in your AWS account.
+
 ##### Network monitoring and VPC Flow Logs
 
-VPC Flow Logs is an AWS service that enables you to do network monitoring. Build a network-monitored environment in AWS
+**VPC Flow Logs** is an AWS service that enables you to do network monitoring. Build a network-monitored environment in AWS
 is a must-have activity about security and compliance of your infrastructure, also, at same time is a huge topic.
-I have worte an article about it: <TODO, it´s done, and about to be published>.
+I have wrote an article about it and as soon its done I'll reference it here.
 
 
 
