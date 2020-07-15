@@ -1,0 +1,166 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: |
+  
+Parameters:
+  ServerKeyPair:
+    Type: AWS::EC2::KeyPair::KeyName
+
+  VPCId:
+    Type: AWS::EC2::VPC::Id
+
+  PublicSubnetId1:
+    Type: AWS::EC2::Subnet::Id
+    AllowedPattern: .+
+
+  InstanceType: 
+    Type: String
+    Default: t3.micro
+    AllowedValues: 
+      - t2.micro
+      - t3.nano
+      - t3.micro
+      - t3.small
+      - m1.small
+      - m1.large
+#TODO: Add other instance types
+  # PublicSubnetId2:
+  #   Type: AWS::EC2::Subnet::Id
+  #   AllowedPattern: .+
+
+  # PublicSubnetId3:
+  #   Description: Optional
+  #   Type: AWS::EC2::Subnet::Id
+  RoleName:
+    Description: A role will be created and associated with the EC 2 instance, give it a name that makes sense to you
+    Type: String
+    Default: MyServerRole
+    AllowedPattern: .+
+
+  TagName:
+    Description: A Tag "Name" will be created and associated with the Launch Template 
+    Type: String
+    AllowedPattern: .+
+  
+  Stage:
+    Description: Select your environment deployment (dev / prod)
+    Type: String
+    Default: prod
+    AllowedValues:
+      - dev
+      - prod  
+
+Mappings:
+  RegionToAMI:
+    us-east-1:
+      AMI: ami-06ed773a6d51e1f74
+    us-east-2:
+      AMI: ami-0001dda08df1f9503
+#TODO: Add other regions
+  
+Resources:
+  ServerRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+              - ec2.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Description: String
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforAWSCodeDeploy
+        - arn:aws:iam::aws:policy/AWSCodeDeployFullAccess
+        - arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
+      RoleName: !Ref RoleName
+
+  ServerInstanceProfile:
+    Type: 'AWS::IAM::InstanceProfile'
+    Properties:
+      Roles:
+        - !Ref ServerRole
+
+  ServerPlacementGroup:
+    Type: "AWS::EC2::PlacementGroup"
+    Properties:
+      Strategy: spread
+
+  ServerSecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: Enable HTTP access via port 80
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 3000
+          ToPort: 3000
+          CidrIp: 0.0.0.0/0
+      VpcId: !Ref VPCId
+
+  ServerLaunchTemplate:
+    Type: "AWS::EC2::LaunchTemplate"
+    Properties:
+      LaunchTemplateName: !Join ['', [!Ref TagName, 'LT']]
+      LaunchTemplateData:
+        ImageId: !FindInMap [ RegionToAMI, !Ref "AWS::Region", AMI ]
+        KeyName: !Ref ServerKeyPair
+        SecurityGroupIds:
+          - !Ref ServerSecurityGroup
+        Placement: 
+          GroupName: !Ref ServerPlacementGroup
+        IamInstanceProfile: 
+          Name: !Ref ServerInstanceProfile
+        UserData: |
+          #!/bin/bash -xe
+
+          ## Code Deploy Agent Bootstrap Script##
+
+          exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
+
+          function installdep(){
+
+            yum install -y ruby jq
+          }
+
+          function execute(){
+            
+            wget https://aws-codedeploy-${REGION}.s3.amazonaws.com/latest/install
+            chmod +x ./install
+
+            if ./install auto; then
+              echo "Instalation completed"
+              exit 0
+            else
+              echo "Instalation script failed, please investigate"
+              rm -f /install
+              exit 1
+            fi
+          }
+
+          installdep
+          REGION=$(curl -s 169.254.169.254/latest/dynamic/instance-identity/document | jq -r ".region")
+          execute
+
+  
+  # ServerInstance:
+  #   Type: AWS::EC2::Instance
+  #   Properties:
+  #     ImageId: !FindInMap [ RegionToAMI, !Ref "AWS::Region", AMI ]
+  #     InstanceType: !Ref InstanceType
+  #     KeyName: !Ref ServerKeyPair
+  #     SubnetId: !Ref PublicSubnetId1
+  #     SecurityGroupIds:
+  #       - !Ref ServerSecurityGroup
+  #     PlacementGroupName: !Ref ServerPlacementGroup
+  #     IamInstanceProfile: !Ref ServerInstanceProfile
+

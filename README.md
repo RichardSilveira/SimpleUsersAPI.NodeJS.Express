@@ -343,7 +343,7 @@ By using this AMI you'll have a "ready-to-production" Node.js server already con
 
 - You must select the Security Group you've created for the EC 2 _(not that one for ALB)_
 
-- Tag your instances properly here _(I like to use `ProductName` and `Stage` tags)_.
+- Tag your instances properly here _(I like to use `Name` and `Stage` tags)_.
 
 - Select a **Placement Group since beginning of your project**, for Startups and small project at early stages is common to use the `Spread` Placement Group, 
 for large apps, `Partition`, and `Cluster` strategy for Big Data/Machine Learning batch processes because of low network latency and high network throughput.

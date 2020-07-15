@@ -1,0 +1,108 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: |
+  
+Parameters:
+  ServerKeyPair:
+    Type: AWS::EC2::KeyPair::KeyName
+
+  VPCId:
+    Type: AWS::EC2::VPC::Id
+
+  PublicSubnetId1:
+    Type: AWS::EC2::Subnet::Id
+    AllowedPattern: .+
+
+  InstanceType: 
+    Type: String
+    Default: t3.micro
+    AllowedValues: 
+      - t2.micro
+      - t3.nano
+      - t3.micro
+      - t3.small
+      - m1.small
+      - m1.large
+#TODO: Add other instance types
+  # PublicSubnetId2:
+  #   Type: AWS::EC2::Subnet::Id
+  #   AllowedPattern: .+
+
+  # PublicSubnetId3:
+  #   Description: Optional
+  #   Type: AWS::EC2::Subnet::Id
+  RoleName:
+    Description: A role will be created and associated with the EC 2 instance, give it a name that makes sense to you
+    Type: String
+    Default: MyServerRole
+    AllowedPattern: .+
+
+Mappings:
+  RegionToAMI:
+    us-east-1:
+      AMI: ami-06ed773a6d51e1f74
+    us-east-2:
+      AMI: ami-0001dda08df1f9503
+#TODO: Add other regions
+  
+Resources:
+  ServerRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+              - ec2.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Description: String
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforAWSCodeDeploy
+        - arn:aws:iam::aws:policy/AWSCodeDeployFullAccess
+        - arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
+      RoleName: !Ref RoleName
+
+  ServerInstanceProfile:
+    Type: 'AWS::IAM::InstanceProfile'
+    Properties:
+      Roles:
+        - !Ref ServerRole
+
+  ServerPlacementGroup:
+    Type: "AWS::EC2::PlacementGroup"
+    Properties:
+      Strategy: spread
+
+  ServerSecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: Enable HTTP access via port 80
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 3000
+          ToPort: 3000
+          CidrIp: 0.0.0.0/0
+      VpcId: !Ref VPCId
+  
+  ServerInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !FindInMap [ RegionToAMI, !Ref "AWS::Region", AMI ]
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref ServerKeyPair
+      SubnetId: !Ref PublicSubnetId1
+      SecurityGroupIds:
+        - !Ref ServerSecurityGroup
+      PlacementGroupName: !Ref ServerPlacementGroup
+      IamInstanceProfile: !Ref ServerInstanceProfile
+
