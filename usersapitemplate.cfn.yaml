@@ -8,9 +8,9 @@ Parameters:
   VPCId:
     Type: AWS::EC2::VPC::Id
 
-  PublicSubnetId1:
-    Type: AWS::EC2::Subnet::Id
-    AllowedPattern: .+
+  VPCZoneIdentifier:
+    Description: List all subnets you would like to allow your ASG to work with
+    Type: List<AWS::EC2::Subnet::Id>
 
   InstanceType: 
     Type: String
@@ -22,14 +22,7 @@ Parameters:
       - t3.small
       - m1.small
       - m1.large
-#TODO: Add other instance types
-  # PublicSubnetId2:
-  #   Type: AWS::EC2::Subnet::Id
-  #   AllowedPattern: .+
 
-  # PublicSubnetId3:
-  #   Description: Optional
-  #   Type: AWS::EC2::Subnet::Id
   RoleName:
     Description: A role will be created and associated with the EC 2 instance, give it a name that makes sense to you
     Type: String
@@ -47,7 +40,21 @@ Parameters:
     Default: prod
     AllowedValues:
       - dev
-      - prod  
+      - prod
+  
+  DesiredCapacityASG:
+    Description: Desired Capacity for ASG
+    Type: String
+
+  MinSizeASG:
+    Description: Min Size for ASG
+    Type: String
+
+  MaxSizeASG:
+    Description: Min Size for ASG
+    Type: String
+  
+
 
 Mappings:
   RegionToAMI:
@@ -113,14 +120,29 @@ Resources:
       LaunchTemplateName: !Join ['', [!Ref TagName, 'LT']]
       LaunchTemplateData:
         ImageId: !FindInMap [ RegionToAMI, !Ref "AWS::Region", AMI ]
+        InstanceType: !Ref InstanceType
         KeyName: !Ref ServerKeyPair
         SecurityGroupIds:
           - !Ref ServerSecurityGroup
         Placement: 
           GroupName: !Ref ServerPlacementGroup
+        TagSpecifications:
+          - ResourceType: instance
+            Tags:
+            - Key: Name
+              Value: !Ref TagName
+            - Key: Stage
+              Value: !Ref Stage
+          - ResourceType: volume
+            Tags:
+            - Key: Name
+              Value: !Ref TagName
+            - Key: Stage
+              Value: !Ref Stage
+
         IamInstanceProfile: 
           Name: !Ref ServerInstanceProfile
-        UserData: |
+        UserData: !Base64 |
           #!/bin/bash -xe
 
           ## Code Deploy Agent Bootstrap Script##
@@ -151,16 +173,45 @@ Resources:
           REGION=$(curl -s 169.254.169.254/latest/dynamic/instance-identity/document | jq -r ".region")
           execute
 
-  
-  # ServerInstance:
-  #   Type: AWS::EC2::Instance
-  #   Properties:
-  #     ImageId: !FindInMap [ RegionToAMI, !Ref "AWS::Region", AMI ]
-  #     InstanceType: !Ref InstanceType
-  #     KeyName: !Ref ServerKeyPair
-  #     SubnetId: !Ref PublicSubnetId1
-  #     SecurityGroupIds:
-  #       - !Ref ServerSecurityGroup
-  #     PlacementGroupName: !Ref ServerPlacementGroup
-  #     IamInstanceProfile: !Ref ServerInstanceProfile
+  ServerASG:
+    Type: "AWS::AutoScaling::AutoScalingGroup"
+    Properties:
+      AutoScalingGroupName: ServerASG
+      DesiredCapacity: !Ref DesiredCapacityASG
+      LaunchTemplate: 
+        LaunchTemplateId: !Ref ServerLaunchTemplate
+        Version: !GetAtt ServerLaunchTemplate.LatestVersionNumber
+      MaxSize: !Ref MaxSizeASG
+      MinSize: !Ref MinSizeASG
+      # PlacementGroup: String - Its not necessary since we already done it in LaunchTemplate
+      VPCZoneIdentifier: !Ref VPCZoneIdentifier
 
+  ScaleOutPolicy:
+    Type: "AWS::AutoScaling::ScalingPolicy"
+    Properties:
+      AdjustmentType: ChangeInCapacity
+      AutoScalingGroupName: !Ref ServerASG
+      Cooldown: '300'
+      ScalingAdjustment: 1
+  HighCPUAlarm:
+    Type: "AWS::CloudWatch::Alarm"
+    Properties:
+      Namespace: AWS/EC2
+      MetricName: CPUUtilization
+      Dimensions:
+      - Name: AutoScalingGroupName
+        Value:
+          Ref: ServerASG
+      Statistic: Average
+      Period: 60
+      ComparisonOperator: GreaterThanThreshold
+      Threshold: 70
+      EvaluationPeriods: 1
+      AlarmDescription: Alarm if CPU too high or metric disappears indicating instance
+        is down
+      AlarmActions:
+      - Ref: ScaleOutPolicy
+      
+  
+  
+#Scaling Policies

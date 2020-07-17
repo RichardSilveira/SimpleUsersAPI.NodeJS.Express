@@ -29,6 +29,19 @@ Parameters:
     Default: MyServerRole
     AllowedPattern: .+
 
+  TagName:
+    Description: A Tag "Name" will be created and associated with the Launch Template 
+    Type: String
+    AllowedPattern: .+
+  
+  Stage:
+    Description: Select your environment deployment (dev / prod)
+    Type: String
+    Default: prod
+    AllowedValues:
+      - dev
+      - prod  
+
 Mappings:
   RegionToAMI:
     us-east-1:
@@ -86,16 +99,62 @@ Resources:
           ToPort: 3000
           CidrIp: 0.0.0.0/0
       VpcId: !Ref VPCId
-  
-  ServerInstance:
-    Type: AWS::EC2::Instance
-    Properties:
-      ImageId: !FindInMap [ RegionToAMI, !Ref "AWS::Region", AMI ]
-      InstanceType: !Ref InstanceType
-      KeyName: !Ref ServerKeyPair
-      SubnetId: !Ref PublicSubnetId1
-      SecurityGroupIds:
-        - !Ref ServerSecurityGroup
-      PlacementGroupName: !Ref ServerPlacementGroup
-      IamInstanceProfile: !Ref ServerInstanceProfile
 
+  ServerLaunchTemplate:
+    Type: "AWS::EC2::LaunchTemplate"
+    Properties:
+      LaunchTemplateName: !Join ['', [!Ref TagName, 'LT']]
+      LaunchTemplateData:
+        ImageId: !FindInMap [ RegionToAMI, !Ref "AWS::Region", AMI ]
+        InstanceType: !Ref InstanceType
+        KeyName: !Ref ServerKeyPair
+        SecurityGroupIds:
+          - !Ref ServerSecurityGroup
+        Placement: 
+          GroupName: !Ref ServerPlacementGroup
+        TagSpecifications:
+          - ResourceType: instance
+            Tags:
+            - Key: Name
+              Value: !Ref TagName
+            - Key: Stage
+              Value: !Ref Stage
+          - ResourceType: volume
+            Tags:
+            - Key: Name
+              Value: !Ref TagName
+            - Key: Stage
+              Value: !Ref Stage
+
+        IamInstanceProfile: 
+          Name: !Ref ServerInstanceProfile
+        UserData: !Base64 |
+          #!/bin/bash -xe
+
+          ## Code Deploy Agent Bootstrap Script##
+
+          exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
+
+          function installdep(){
+
+            yum install -y ruby jq
+          }
+
+          function execute(){
+            
+            wget https://aws-codedeploy-${REGION}.s3.amazonaws.com/latest/install
+            chmod +x ./install
+
+            if ./install auto; then
+              echo "Instalation completed"
+              exit 0
+            else
+              echo "Instalation script failed, please investigate"
+              rm -f /install
+              exit 1
+            fi
+          }
+
+          installdep
+          REGION=$(curl -s 169.254.169.254/latest/dynamic/instance-identity/document | jq -r ".region")
+          execute
