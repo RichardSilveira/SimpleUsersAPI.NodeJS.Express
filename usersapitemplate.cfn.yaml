@@ -188,11 +188,12 @@ Resources:
           REGION=$(curl -s 169.254.169.254/latest/dynamic/instance-identity/document | jq -r ".region")
           execute
 
-  ALBTargetGroup:
+  ServerTargetGroup:
     Type: "AWS::ElasticLoadBalancingV2::TargetGroup"
     Properties:
       TargetType: instance
       Port: 80
+      Protocol: HTTP
       VpcId: !Ref VPCId
       HealthCheckEnabled: true
       HealthCheckIntervalSeconds: 30
@@ -208,7 +209,7 @@ Resources:
    Properties:
      DefaultActions:
       - Type: "forward"
-        TargetGroupArn: !Ref ALBTargetGroup
+        TargetGroupArn: !Ref ServerTargetGroup
      LoadBalancerArn: !Ref ServerALB
      Port: 80
      Protocol: HTTP
@@ -221,7 +222,7 @@ Resources:
       IpAddressType: ipv4
       Scheme: internet-facing      
       SecurityGroups:
-        - ALBSecurityGroup
+        - !Ref ALBSecurityGroup
       Subnets: !Ref VPCZoneIdentifier
 
   ServerASG:
@@ -235,7 +236,11 @@ Resources:
       MaxSize: !Ref MaxSizeASG
       MinSize: !Ref MinSizeASG
       # PlacementGroup: String - Its not necessary since we already done it in LaunchTemplate
+      HealthCheckType: ELB
+      HealthCheckGracePeriod: 300
       VPCZoneIdentifier: !Ref VPCZoneIdentifier
+      TargetGroupARNs: 
+        - !Ref ServerTargetGroup
 
   ScaleOUTPolicy:
     Type: "AWS::AutoScaling::ScalingPolicy"
@@ -298,8 +303,3 @@ Outputs:
       !Join 
         - ''
         - ['https://', !GetAtt ServerALB.DNSName]
-# Subnets publicas e privadas (melhor deixar para depois - tópico avançado)
-# EC2 ficarão nas privadas e o ALB publicado nas públicas.
-# Ou seja, teremos subnets para o ALB e outras 3 para o ASG (não serão as mesmas!)
-# Talvez seja legal criar algum serviço (algo no S3) para buscar via VPC Endpoint.
-# add um bastion host.
