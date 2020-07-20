@@ -419,6 +419,8 @@ AWS CloudTrail is enabled by default and you can either create a new trail or ch
 is a must-have activity about security and compliance of your infrastructure, also, at same time is a huge topic.
 I have wrote an article about it - *published by the huge codeburst.io medium editors* - [Network monitoring with AWS VPC Flow Logs and Amazon Athena](https://codeburst.io/network-monitoring-with-aws-vpc-flow-logs-and-amazon-athena-de94969f4175).
 
+![vpc-network-monitoring](./public/vpc-monitoring-article.png)
+
 At this article you'll learn how to have a monitored network environment in your VPC in a professional way.
 
 You will learn how to use and integrate AWS VPC Flow Logs, Amazon Athena, Amazon CloudWatch, and S3 to help us with analyzing networking traffic tasks, plus, to get notified for threats.
