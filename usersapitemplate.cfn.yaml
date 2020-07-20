@@ -303,11 +303,3 @@ Outputs:
       !Join 
         - ''
         - ['https://', !GetAtt ServerALB.DNSName]
-<<<<<<< HEAD
-=======
-# Subnets publicas e privadas (melhor deixar para depois - tópico avançado)
-# EC2 ficarão nas privadas e o ALB publicado nas públicas.
-# Ou seja, teremos subnets para o ALB e outras 3 para o ASG (não serão as mesmas!)
-# Talvez seja legal criar algum serviço (algo no S3) para buscar via VPC Endpoint.
-# add um bastion host.
->>>>>>> 64313e0db82b5458480ce8bec04861e877932f75
