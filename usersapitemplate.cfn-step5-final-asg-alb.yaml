@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: |
-
+  
 Parameters:
   ServerKeyPair:
     Type: AWS::EC2::KeyPair::KeyName
@@ -12,28 +12,28 @@ Parameters:
     Description: List all subnets you would like to allow your ASG to work with
     Type: List<AWS::EC2::Subnet::Id>
 
-  InstanceType:
+  InstanceType: 
     Type: String
     Default: t3.micro
-    AllowedValues:
+    AllowedValues: 
       - t2.micro
       - t3.nano
       - t3.micro
       - t3.small
       - m1.small
       - m1.large
-#TODO: All instance types enabled
+
   RoleName:
     Description: A role will be created and associated with the EC 2 instance, give it a name that makes sense to you
     Type: String
     Default: MyServerRole
     AllowedPattern: .+
 
-  TagName: #TODO: Review it, do I really need it?
-    Description: A Tag "Name" will be created and associated with the Launch Template
+  TagName:
+    Description: A Tag "Name" will be created and associated with the Launch Template 
     Type: String
     AllowedPattern: .+
-
+  
   Stage:
     Description: Select your environment deployment (dev / prod)
     Type: String
@@ -41,7 +41,7 @@ Parameters:
     AllowedValues:
       - dev
       - prod
-
+  
   DesiredCapacityASG:
     Description: Desired Capacity for ASG
     Type: String
@@ -53,19 +53,19 @@ Parameters:
   MaxSizeASG:
     Description: Min Size for ASG
     Type: String
-
+  
 
 
 Mappings:
-  RegionArchToAMI:
+  RegionToAMI:
     us-east-1:
-      HVM64: ami-06ed773a6d51e1f74
+      AMI: ami-06ed773a6d51e1f74
     us-east-2:
-      HVM64: ami-0001dda08df1f9503
+      AMI: ami-0001dda08df1f9503
 #TODO: Add other regions
-
+  
 Resources:
-  WebServerRole:
+  ServerRole:
     Type: "AWS::IAM::Role"
     Properties:
       AssumeRolePolicyDocument:
@@ -84,18 +84,18 @@ Resources:
         - arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
       RoleName: !Ref RoleName
 
-  WebServerInstanceProfile:
+  ServerInstanceProfile:
     Type: 'AWS::IAM::InstanceProfile'
     Properties:
       Roles:
-        - !Ref WebServerRole
+        - !Ref ServerRole
 
-  WebServerPlacementGroup:
+  ServerPlacementGroup:
     Type: "AWS::EC2::PlacementGroup"
     Properties:
       Strategy: spread
-
-  LoadBalancerSecurityGroup:
+  
+  ALBSecurityGroup:
     Type: "AWS::EC2::SecurityGroup"
     Properties:
       GroupDescription: Enable secure access to the Application Load Balacer
@@ -110,7 +110,7 @@ Resources:
           CidrIp: 0.0.0.0/0
       VpcId: !Ref VPCId
 
-  WebServerSecurityGroup:
+  ServerSecurityGroup:
     Type: "AWS::EC2::SecurityGroup"
     Properties:
       GroupDescription: Enable secure access to the web server
@@ -118,7 +118,7 @@ Resources:
         - IpProtocol: tcp
           FromPort: 80
           ToPort: 80
-          SourceSecurityGroupId: !Ref LoadBalancerSecurityGroup
+          SourceSecurityGroupId: !Ref ALBSecurityGroup
         - IpProtocol: tcp
           FromPort: 22
           ToPort: 22
@@ -126,21 +126,21 @@ Resources:
         - IpProtocol: tcp
           FromPort: 3000
           ToPort: 3000
-          SourceSecurityGroupId: !Ref LoadBalancerSecurityGroup
+          SourceSecurityGroupId: !Ref ALBSecurityGroup
       VpcId: !Ref VPCId
 
-  WebServerLaunchTemplate:
+  ServerLaunchTemplate:
     Type: "AWS::EC2::LaunchTemplate"
     Properties:
       LaunchTemplateName: !Join ['', [!Ref TagName, 'LT']]
       LaunchTemplateData:
-        ImageId: !FindInMap [ RegionArchToAMI, !Ref "AWS::Region", HVM64 ]
+        ImageId: !FindInMap [ RegionToAMI, !Ref "AWS::Region", AMI ]
         InstanceType: !Ref InstanceType
         KeyName: !Ref ServerKeyPair
         SecurityGroupIds:
-          - !Ref WebServerSecurityGroup
-        Placement:
-          GroupName: !Ref WebServerPlacementGroup
+          - !Ref ServerSecurityGroup
+        Placement: 
+          GroupName: !Ref ServerPlacementGroup
         TagSpecifications:
           - ResourceType: instance
             Tags:
@@ -155,8 +155,8 @@ Resources:
             - Key: Stage
               Value: !Ref Stage
 
-        IamInstanceProfile:
-          Name: !Ref WebServerInstanceProfile
+        IamInstanceProfile: 
+          Name: !Ref ServerInstanceProfile
         UserData: !Base64 |
           #!/bin/bash -xe
 
@@ -170,7 +170,7 @@ Resources:
           }
 
           function execute(){
-
+            
             wget https://aws-codedeploy-${REGION}.s3.amazonaws.com/latest/install
             chmod +x ./install
 
@@ -188,7 +188,7 @@ Resources:
           REGION=$(curl -s 169.254.169.254/latest/dynamic/instance-identity/document | jq -r ".region")
           execute
 
-  WebServerTargetGroup:
+  ServerTargetGroup:
     Type: "AWS::ElasticLoadBalancingV2::TargetGroup"
     Properties:
       TargetType: instance
@@ -203,57 +203,58 @@ Resources:
       HealthCheckTimeoutSeconds: 5
       HealthyThresholdCount: 5
       UnhealthyThresholdCount: 2
+  
+  HTTPlistener:
+   Type: "AWS::ElasticLoadBalancingV2::Listener"
+   Properties:
+     DefaultActions:
+      - Type: "forward"
+        TargetGroupArn: !Ref ServerTargetGroup
+     LoadBalancerArn: !Ref ServerALB
+     Port: 80
+     Protocol: HTTP
 
-  ApplicationLoadBalancer:
+  ServerALB:
     Type: "AWS::ElasticLoadBalancingV2::LoadBalancer"
     Properties:
-      Name: ApplicationLoadBalancer
+      Name: ServerALB
       Type: application
       IpAddressType: ipv4
-      Scheme: internet-facing
+      Scheme: internet-facing      
       SecurityGroups:
-        - !Ref LoadBalancerSecurityGroup
+        - !Ref ALBSecurityGroup
       Subnets: !Ref VPCZoneIdentifier
 
-  HTTPlistener:
-    Type: "AWS::ElasticLoadBalancingV2::Listener"
-    Properties:
-      DefaultActions:
-        - Type: "forward"
-          TargetGroupArn: !Ref WebServerTargetGroup
-      LoadBalancerArn: !Ref ApplicationLoadBalancer
-      Port: 80
-      Protocol: HTTP
-
-  WebServerScalingGroup:
+  ServerASG:
     Type: "AWS::AutoScaling::AutoScalingGroup"
     Properties:
-      AutoScalingGroupName: WebServerScalingGroup
+      AutoScalingGroupName: ServerASG
       DesiredCapacity: !Ref DesiredCapacityASG
-      LaunchTemplate:
-        LaunchTemplateId: !Ref WebServerLaunchTemplate
-        Version: !GetAtt WebServerLaunchTemplate.LatestVersionNumber
+      LaunchTemplate: 
+        LaunchTemplateId: !Ref ServerLaunchTemplate
+        Version: !GetAtt ServerLaunchTemplate.LatestVersionNumber
       MaxSize: !Ref MaxSizeASG
       MinSize: !Ref MinSizeASG
+      # PlacementGroup: String - Its not necessary since we already done it in LaunchTemplate
       HealthCheckType: ELB
       HealthCheckGracePeriod: 300
       VPCZoneIdentifier: !Ref VPCZoneIdentifier
-      TargetGroupARNs:
-        - !Ref WebServerTargetGroup
+      TargetGroupARNs: 
+        - !Ref ServerTargetGroup
 
-  WebServerScaleUpPolicy:
+  ScaleOUTPolicy:
     Type: "AWS::AutoScaling::ScalingPolicy"
     Properties:
       AdjustmentType: ChangeInCapacity
-      AutoScalingGroupName: !Ref WebServerScalingGroup
+      AutoScalingGroupName: !Ref ServerASG
       Cooldown: '300'
       ScalingAdjustment: 1
 
-  WebServerScaleDownPolicy:
+  ScaleINPolicy:
     Type: "AWS::AutoScaling::ScalingPolicy"
     Properties:
       AdjustmentType: ChangeInCapacity
-      AutoScalingGroupName: !Ref WebServerScalingGroup
+      AutoScalingGroupName: !Ref ServerASG
       Cooldown: '180'
       ScalingAdjustment: -1
 
@@ -266,7 +267,7 @@ Resources:
       Dimensions:
       - Name: AutoScalingGroupName
         Value:
-          Ref: WebServerScalingGroup
+          Ref: ServerASG
       Statistic: Average
       Period: 300
       ComparisonOperator: GreaterThanOrEqualToThreshold
@@ -274,8 +275,8 @@ Resources:
       EvaluationPeriods: 1
       AlarmDescription: Alarm if CPU too high
       AlarmActions:
-      - Ref: WebServerScaleUpPolicy
-
+      - Ref: ScaleOUTPolicy
+      
   LowCPUAlarm:
     Type: "AWS::CloudWatch::Alarm"
     Properties:
@@ -285,7 +286,7 @@ Resources:
       Dimensions:
       - Name: AutoScalingGroupName
         Value:
-          Ref: WebServerScalingGroup
+          Ref: ServerASG
       Statistic: Average
       Period: 300
       ComparisonOperator: LessThanOrEqualToThreshold
@@ -293,12 +294,12 @@ Resources:
       EvaluationPeriods: 1
       AlarmDescription: Alarm if CPU too low
       AlarmActions:
-      - Ref: WebServerScaleDownPolicy
+      - Ref: ScaleINPolicy
 
 Outputs:
-  ApplicationLoadBalancerDNS:
+  ALBDNS:
     Description: DNS Name for the Application Load Balancer
-    Value:
-      !Join
+    Value: 
+      !Join 
         - ''
-        - ['https://', !GetAtt ApplicationLoadBalancer.DNSName]
+        - ['https://', !GetAtt ServerALB.DNSName]
