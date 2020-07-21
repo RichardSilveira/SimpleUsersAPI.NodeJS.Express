@@ -4,56 +4,52 @@ Description: |
 Parameters:
   ServerKeyPair:
     Type: AWS::EC2::KeyPair::KeyName
+    Description: Your Amazon EC2 Key Pair.
 
   VPCId:
     Type: AWS::EC2::VPC::Id
+    Description: Choose which VPC all the resources should be deployed to.
 
-  VPCZoneIdentifier:
-    Description: List all subnets you would like to allow your ASG to work with
+  Subnets:
     Type: List<AWS::EC2::Subnet::Id>
+    Description: Choose which subnets all the resources should be deployed to.
 
   InstanceType:
     Type: String
     Default: t3.micro
     AllowedValues:
+      - t2.nano
       - t2.micro
+      - t2.small
+      - t2.medium
       - t3.nano
       - t3.micro
       - t3.small
-      - m1.small
-      - m1.large
-#TODO: All instance types enabled
-  RoleName:
-    Description: A role will be created and associated with the EC 2 instance, give it a name that makes sense to you
-    Type: String
-    Default: MyServerRole
-    AllowedPattern: .+
+      - t3.medium
+      - t3a.nano
+      - t3a.micro
+      - t3a.small
+      - t3a.medium
 
-  TagName: #TODO: Review it, do I really need it?
-    Description: A Tag "Name" will be created and associated with the Launch Template
+  TagName:
+    Description: A Tag "Name" to be added or prefixed to resources, e.g. it can be your product/project Name.
     Type: String
     AllowedPattern: .+
-
-  Stage:
-    Description: Select your environment deployment (dev / prod)
-    Type: String
-    Default: prod
-    AllowedValues:
-      - dev
-      - prod
 
   DesiredCapacityASG:
-    Description: Desired Capacity for ASG
+    Description: Desired Capacity for Auto Scaling Group.
     Type: String
+    AllowedPattern: .+
 
   MinSizeASG:
-    Description: Min Size for ASG
+    Description: Min Size for Auto Scaling Group.
     Type: String
+    AllowedPattern: .+
 
   MaxSizeASG:
-    Description: Min Size for ASG
+    Description: Max Size for Auto Scaling Group.
     Type: String
-
+    AllowedPattern: .+
 
 
 Mappings:
@@ -62,7 +58,42 @@ Mappings:
       HVM64: ami-06ed773a6d51e1f74
     us-east-2:
       HVM64: ami-0001dda08df1f9503
-#TODO: Add other regions
+    us-west-1:
+      HVM64: ami-0c7a5e8badebc9252
+    us-west-2:
+      HVM64: ami-06a9aedd8ac9d6e87
+    af-south-1:
+      HVM64: ami-0ee55c43a87275e58
+    ap-east-1:
+      HVM64: ami-0005fefdada2bbe87
+    ap-south-1:
+      HVM64: ami-0de468bb89240e52b
+    ap-northeast-2:
+      HVM64: ami-0d0b4fe27196f88e9
+    ap-southeast-1:
+      HVM64: ami-0396b01d2343803dc
+    ap-southeast-2:
+      HVM64: ami-07a94a93ac1559b53
+    ap-northeast-1:
+      HVM64: ami-0cf93d65a0d7db690
+    ca-central-1:
+      HVM64: ami-06d68be17c7478e53
+    eu-central-1:
+      HVM64: ami-0a1d3609556f237d9
+    eu-west-1:
+      HVM64: ami-0e0466b783912f0e7
+    eu-west-2:
+      HVM64: ami-0d00661b84bb84cab
+    eu-south-1:
+      HVM64: ami-06ae3e2561bab4275
+    eu-west-3:
+      HVM64: ami-0930607b3bfabd872
+    eu-north-1:
+      HVM64: ami-0eb8e6b80d471b2b9
+    me-south-1:
+      HVM64: ami-06a1038b2390c6cbf
+    sa-east-1:
+      HVM64: ami-0206fdca07be0109d
 
 Resources:
   WebServerRole:
@@ -82,7 +113,10 @@ Resources:
         - arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforAWSCodeDeploy
         - arn:aws:iam::aws:policy/AWSCodeDeployFullAccess
         - arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
-      RoleName: !Ref RoleName
+      RoleName: !Join ['-', [!Ref TagName, 'Role']]
+      Tags:
+        - Key: Name
+          Value: !Ref TagName
 
   WebServerInstanceProfile:
     Type: 'AWS::IAM::InstanceProfile'
@@ -109,6 +143,9 @@ Resources:
           ToPort: 3000
           CidrIp: 0.0.0.0/0
       VpcId: !Ref VPCId
+      Tags:
+        - Key: Name
+          Value: !Ref TagName
 
   WebServerSecurityGroup:
     Type: "AWS::EC2::SecurityGroup"
@@ -128,6 +165,9 @@ Resources:
           ToPort: 3000
           SourceSecurityGroupId: !Ref LoadBalancerSecurityGroup
       VpcId: !Ref VPCId
+      Tags:
+        - Key: Name
+          Value: !Ref TagName
 
   WebServerLaunchTemplate:
     Type: "AWS::EC2::LaunchTemplate"
@@ -146,15 +186,10 @@ Resources:
             Tags:
             - Key: Name
               Value: !Ref TagName
-            - Key: Stage
-              Value: !Ref Stage
           - ResourceType: volume
             Tags:
             - Key: Name
               Value: !Ref TagName
-            - Key: Stage
-              Value: !Ref Stage
-
         IamInstanceProfile:
           Name: !Ref WebServerInstanceProfile
         UserData: !Base64 |
@@ -191,6 +226,7 @@ Resources:
   WebServerTargetGroup:
     Type: "AWS::ElasticLoadBalancingV2::TargetGroup"
     Properties:
+      Name: !Join ['', [!Ref TagName, 'TargetGroup']]
       TargetType: instance
       Port: 80
       Protocol: HTTP
@@ -203,17 +239,23 @@ Resources:
       HealthCheckTimeoutSeconds: 5
       HealthyThresholdCount: 5
       UnhealthyThresholdCount: 2
+      Tags:
+        - Key: Name
+          Value: !Ref TagName
 
   ApplicationLoadBalancer:
     Type: "AWS::ElasticLoadBalancingV2::LoadBalancer"
     Properties:
-      Name: ApplicationLoadBalancer
+      Name: !Join ['', [!Ref TagName, 'ApplicationLoadBalancer']]
       Type: application
       IpAddressType: ipv4
       Scheme: internet-facing
       SecurityGroups:
         - !Ref LoadBalancerSecurityGroup
-      Subnets: !Ref VPCZoneIdentifier
+      Subnets: !Ref Subnets
+      Tags:
+        - Key: Name
+          Value: !Ref TagName
 
   HTTPlistener:
     Type: "AWS::ElasticLoadBalancingV2::Listener"
@@ -228,7 +270,7 @@ Resources:
   WebServerScalingGroup:
     Type: "AWS::AutoScaling::AutoScalingGroup"
     Properties:
-      AutoScalingGroupName: WebServerScalingGroup
+      AutoScalingGroupName: !Join ['', [!Ref TagName, 'AutoScalingGroup']]
       DesiredCapacity: !Ref DesiredCapacityASG
       LaunchTemplate:
         LaunchTemplateId: !Ref WebServerLaunchTemplate
@@ -237,9 +279,13 @@ Resources:
       MinSize: !Ref MinSizeASG
       HealthCheckType: ELB
       HealthCheckGracePeriod: 300
-      VPCZoneIdentifier: !Ref VPCZoneIdentifier
+      VPCZoneIdentifier: !Ref Subnets
       TargetGroupARNs:
         - !Ref WebServerTargetGroup
+      Tags:
+        - Key: Name
+          Value: !Ref TagName
+          PropagateAtLaunch: True
 
   WebServerScaleUpPolicy:
     Type: "AWS::AutoScaling::ScalingPolicy"
@@ -272,7 +318,7 @@ Resources:
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 70
       EvaluationPeriods: 1
-      AlarmDescription: Alarm if CPU too high
+      AlarmDescription: Alarm if CPU is too high
       AlarmActions:
       - Ref: WebServerScaleUpPolicy
 
@@ -291,14 +337,11 @@ Resources:
       ComparisonOperator: LessThanOrEqualToThreshold
       Threshold: 50
       EvaluationPeriods: 1
-      AlarmDescription: Alarm if CPU too low
+      AlarmDescription: Alarm if CPU is too low
       AlarmActions:
       - Ref: WebServerScaleDownPolicy
 
 Outputs:
   ApplicationLoadBalancerDNS:
     Description: DNS Name for the Application Load Balancer
-    Value:
-      !Join
-        - ''
-        - ['https://', !GetAtt ApplicationLoadBalancer.DNSName]
+    Value: !Join ['', ['http://', !GetAtt ApplicationLoadBalancer.DNSName]]

@@ -15,8 +15,7 @@ A zero to master API made in Node.js, Express, MongoDb, and AWS.
 - [x] Set up a Fault Tolerant environment for the API, by using at least 3 AZ in a Region/VPC (ELB)  
 - [x] Integrate CodeDeploy Blue/Green Deployment with Auto-Scaling and Application Load Balancer
 - [x] Set up Observability in the application at general, using AWS X-Ray, CloudTrail, VPC Flow Logs, and (maybe) ELK Stack.
-- [ ] Provide infrastructure as a service by creating a CloudFormation Stack of all the stuffs
-- [ ] ~~Configure a CI/CD with Blue/Green Deployment (use Route 53 weighted routing policy) (AWS or Team City?)~~ 
+- [x] Provide infrastructure as a service by creating a CloudFormation Stack of all the stuff
 - [ ] Add a Cache layer with Redis (Write-Through or Lazy Loading strategy) - maybe before publish the API in AWS
 - [ ] Containerize the Users API microservice with Docker and update all AWS environment (using AWS Fargate) or by using ECS
 - [ ] Create a sample of how all of it can be done with Serverless in AWS with API Gateway, Lambda, DynamoDb?
@@ -107,7 +106,7 @@ To help us which this task, we need to use a **Node Process Manager**, the most 
 `PM 2` will fork process according to new requests are coming X host server capacity, besides it will 
 handle restarts, errors, monitoring, among other tasks.
 
-If we need, `PM 2` will handle some stuffs like deploy in production directly in the server destination host, 
+If we need, `PM 2` will handle some stuff like deploy in production directly in the server destination host, 
 but I prefer to use `PM 2` limited to cluster management responsibilities, one reason is that working with AWS, 
 the deployments using EC2 hosts is faster (and well-organized) through "Golden AMI" strategy, this way we've 
 the `PM 2` package installed globally and a symlink to it at the project level.
@@ -306,7 +305,7 @@ reduction at the deployment time, thus, it is not a so bad practice.
 **Install script:** [EC2 User Data to Install the Code Deploy Agent](https://gist.github.com/RichardSilveira/376d863bb3e87fbf3b901eafb2a89898)
 
 
-#### Set up a Fault Tolerant environment for the API, by using at least 3 AZ in a Region/VPC (ELB) - *v7.0.0*
+#### Set up a High Available and Fault-Tolerant environment for the API, by using at least 3 AZ in a Region/VPC (ELB) - *v7.0.0*
 
 We'll build an elastic and high available environment in AWS like in the image bellow, but instead of two AZ, try to work with 3 AZ at minimum always, it's a common approach/best practice strategy for many scenarios about infrastructure scaling.  
 
@@ -426,4 +425,92 @@ At this article you'll learn how to have a monitored network environment in your
 You will learn how to use and integrate AWS VPC Flow Logs, Amazon Athena, Amazon CloudWatch, and S3 to help us with analyzing networking traffic tasks, plus, to get notified for threats.
 
 
+#### Provide infrastructure as a service by creating a CloudFormation Stack of all the stuff - *v8.0.0*
 
+We've already built a highly available environment for this User API earlier at *Set up a High Available and Fault-Tolerant environment for the API* section, 
+thus we'll reproduce that environment via infrastructure-as-code by using CloudFormation.
+
+> That is another huge topic, so, I'll write some sort of How-to article about it later. For now, I'll move through the key points about CloudFormation.
+
+##### Tooling
+
+Forget about the CloudFormation Designer it's not so helpful even for beginners, a better option is working with a good tooling setup instead.
+
+I'm a big fan of IntelliJ IDEA's family and don't like so much of VSCode, but its ability and popularity in terms of extension can be awesome sometimes and that is the case about CloudFormation template building.
+
+AWS created a **Linter** wich validates in real-time the issues in our CloudFormation yaml/json files. This way you can catch errors in your template while you're creating it. Also, you can use it as a pre-commit hook: [AWS cfn-lint](https://aws.amazon.com/blogs/mt/git-pre-commit-validation-of-aws-cloudformation-templates-with-cfn-lint/)
+
+Firstly, install pip `pip install cfn-lint`, then install the [VSCode extension](https://marketplace.visualstudio.com/items?itemName=kddejong.vscode-cfn-lint).
+
+There are many options about code-completion in CloudFormation templates and despite the fact that is not so popular, I liked a lot of the [CloudFormation YAML Snippets for VS Code](https://marketplace.visualstudio.com/items?itemName=dsteenman.cloudformation-yaml-snippets).
+
+![CloudFormation YAML Snippets for VS Code](./public/extension-vscode-autocompletion.gif)
+
+##### Planning
+
+**Write down every resource** that you need to add to your Stack before building the template and build it in **baby steps** - That's it!
+> Deploy your CloudFormation template at the end of each step.
+
+I've build this template through 6 steps, take a look at each of them for a better understanding.
+
+- [step1-ec2instance](./usersapitemplate-step1-ec2instance.cfn.yaml)
+- [step2-ec2-iam-codedployenabled](./usersapitemplate-step2-ec2-iam-codedployenabled.cfn.yaml)
+- [step3-launchtemplate](./usersapitemplate-step3-launchtemplate.cfn.yaml)
+- [step4-asg](./usersapitemplate.cfn-step4-asg.yaml)
+- [step5-final-asg-alb](./usersapitemplate.cfn-step5-final-asg-alb.yaml)
+
+- [final-step](./usersapitemplate.cfn.yaml)
+> Extra step to add all mappings needed, parameters descriptions, typos, and so on.
+
+##### Updating Stack and protecting a resource from being deleted
+
+**Stack Policy** should be part of your daily-basis tasks while working with CloudFormation, protecting your stacks against unintentional resource updates/deletions and not-authorized template updates *- plus, don't forget the principle of least privilege.*
+
+To know more about it take a look at [Prevent updates to stack resources](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/protect-stack-resources.html)
+
+```JSON
+{
+  "Statement" : [
+    {
+      "Effect" : "Allow",
+      "Action" : "Update:*",
+      "Principal": "*",
+      "Resource" : "*"
+    },
+    {
+      "Effect" : "Deny",
+      "Action" : "Update:*",
+      "Principal": "*",
+      "Resource" : "LogicalResourceId/WebServerRole"
+    }
+  ]
+}
+```
+> It's a sample of how I'm handling stack resources updates protection in our scenario.
+
+
+We must be aware of **Update Behaviors** of our stack resources to understand the downtime of your application.
+
+If you have some experience with CloudFormation you should be familiar with the [AWS resource and property types reference](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-template-resource-type-ref.html) *- if not, favorite it, I use it at every new template that I build*. For every resource property you can notice an `Update requires` field that indicates how an update at that property may affect your end-user in terms of application downtime, the values can be `Replacement`, `Some Interruption`, and `No Interruption`.
+
+Still talking about application downtime, other great allied that you can pay attention is the **Change Sets** feature. Whenever you update your Stack you can compare what is being updated and if this updates requires a `Replacement` of the resource.
+
+![CloudFormation Change Sets](./public/ChangeSets.png)
+
+##### Monitoring Stack resources with AWS Config
+
+##### Drift Detection
+
+##### Code Reuse
+
+CloudFormation is infrastructure as code and like in a programming language we need to leverage code reuse.
+
+There is no problem with the CloudFormation template that we build for this project. However taking a deeply look to it you'll notice there are many concerns about Networking - *VPC, Subnets*, Security - *Security Groups*, Elasticity and High Availability - *ALB, ALG* and all of it was done by one single person. In a small-to-medium company you'll probably have a Network team, an Architectural team, some Security specialist guy and the Product's teams and those separations of responsabilities can be reflected in CloudFormation through Cross-stack references. Cross-stack references let you use a layered or service-oriented architecture. Instead of including all resources in a single stack, you create related AWS resources in separate stacks; then you can refer to required resource outputs from other stacks. By restricting cross-stack references to outputs, you control the parts of a stack that are referenced by other stacks.
+
+In our scenario we could have a network stack, a stack for Elasticity with ASG + ALB included, and another for the Node.JS Application Server itself. This way each team remains focused on its specialties and goals.
+
+> To know more about CloudFormation Cross-stack references take a look at [Walkthrough: Refer to resource outputs in another AWS CloudFormation stack](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/walkthrough-crossstackref.html)
+
+There are blocks of codes in this template that in the daily-basis activities you'd repeat often like the `WebServerTargetGroup`, and `WebServerScalingGroup`, plus, always using them together, changing other settings like Scaling policies. Those kinds of codes you must group in **Nested Stacks** and reference them in other stacks leveraging code reusability easily.
+
+> Instead of coding here, it sounds a better idea have a dedicated repository to demonstrate both cross-stack and nested stacks features
