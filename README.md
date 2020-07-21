@@ -16,9 +16,7 @@ A zero to master API made in Node.js, Express, MongoDb, and AWS.
 - [x] Integrate CodeDeploy Blue/Green Deployment with Auto-Scaling and Application Load Balancer
 - [x] Set up Observability in the application at general, using AWS X-Ray, CloudTrail, VPC Flow Logs, and (maybe) ELK Stack.
 - [x] Provide infrastructure as a service by creating a CloudFormation Stack of all the stuff
-- [ ] Add a Cache layer with Redis (Write-Through or Lazy Loading strategy) - maybe before publish the API in AWS
-- [ ] Containerize the Users API microservice with Docker and update all AWS environment (using AWS Fargate) or by using ECS
-- [ ] Create a sample of how all of it can be done with Serverless in AWS with API Gateway, Lambda, DynamoDb?
+
 
 ### Simple CRUD operations for Users REST API using Express and Mongoose - *v1.0.1*
 
@@ -497,9 +495,20 @@ Still talking about application downtime, other great allied that you can pay at
 
 ![CloudFormation Change Sets](./public/ChangeSets.png)
 
-##### Monitoring Stack resources with AWS Config
-
 ##### Drift Detection
+
+
+Whenever a resource is changed directly rather than in the CloudFormation template you've built, e.g. an Ingress Rule in a Security Group, we have a Drift scenario.
+A Drift occurs when a CloudFormation stack has changed from its original configuration and no longer matches the template which built it.
+
+A Drift is something that needs to be avoided - just think about **Disaster Recovery Scenarios** when we need to recreate our stack in another region. In case of some
+drift, we can't reproduce our stack of resources accordingly.
+
+Drift Detection can very quickly be run to determine if drift has occurred and steps can be taken to correct the issue. You can run it direclty from the Console. Plus we can leverage AWS Config to monitoring whenever a drift happens at your instrastructure.
+
+A good resource about Drift Detection is [AWS - CloudFormation Drift Detection](https://aws.amazon.com/blogs/aws/new-cloudformation-drift-detection/)
+
+> You can create a stack from its template and do some changes at the Security Group of the Application Server to play around Drift detection and remediation
 
 ##### Code Reuse
 
