@@ -443,13 +443,13 @@ There are many options about code-completion in CloudFormation templates and des
 
 I've build this template through 6 steps, take a look at each of them for a better understanding.
 
-- [step1-ec2instance](./usersapitemplate-step1-ec2instance.cfn.yaml)
-- [step2-ec2-iam-codedployenabled](./usersapitemplate-step2-ec2-iam-codedployenabled.cfn.yaml)
-- [step3-launchtemplate](./usersapitemplate-step3-launchtemplate.cfn.yaml)
-- [step4-asg](./usersapitemplate.cfn-step4-asg.yaml)
-- [step5-final-asg-alb](./usersapitemplate.cfn-step5-final-asg-alb.yaml)
+- [step1-ec2instance](cloudformation/usersapitemplate-step1-ec2instance.cfn.yaml)
+- [step2-ec2-iam-codedployenabled](cloudformation/usersapitemplate-step2-ec2-iam-codedployenabled.cfn.yaml)
+- [step3-launchtemplate](cloudformation/usersapitemplate-step3-launchtemplate.cfn.yaml)
+- [step4-asg](cloudformation/usersapitemplate.cfn-step4-asg.yaml)
+- [step5-final-asg-alb](cloudformation/usersapitemplate.cfn-step5-final-asg-alb.yaml)
 
-- [final-step](./usersapitemplate.cfn.yaml)
+- [final-step](cloudformation/usersapitemplate.cfn.yaml)
 > Extra step to add all mappings needed, parameters descriptions, typos, and so on.
 
 ##### Updating Stack and protecting a resource from being deleted
