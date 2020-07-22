@@ -495,21 +495,6 @@ Still talking about application downtime, other great allied that you can pay at
 
 ![CloudFormation Change Sets](./public/ChangeSets.png)
 
-##### Drift Detection
-
-
-Whenever a resource is changed directly rather than in the CloudFormation template you've built, e.g. an Ingress Rule in a Security Group, we have a Drift scenario.
-A Drift occurs when a CloudFormation stack has changed from its original configuration and no longer matches the template which built it.
-
-A Drift is something that needs to be avoided - just think about **Disaster Recovery Scenarios** when we need to recreate our stack in another region. In case of some
-drift, we can't reproduce our stack of resources accordingly.
-
-Drift Detection can very quickly be run to determine if drift has occurred and steps can be taken to correct the issue. You can run it direclty from the Console. Plus we can leverage AWS Config to monitoring whenever a drift happens at your instrastructure.
-
-A good resource about Drift Detection is [AWS - CloudFormation Drift Detection](https://aws.amazon.com/blogs/aws/new-cloudformation-drift-detection/)
-
-> You can create a stack from its template and do some changes at the Security Group of the Application Server to play around Drift detection and remediation
-
 ##### Code Reuse
 
 CloudFormation is infrastructure as code and like in a programming language we need to leverage code reuse.
@@ -523,3 +508,17 @@ In our scenario we could have a network stack, a stack for Elasticity with ASG +
 There are blocks of codes in this template that in the daily-basis activities you'd repeat often like the `WebServerTargetGroup`, and `WebServerScalingGroup`, plus, always using them together, changing other settings like Scaling policies. Those kinds of codes you must group in **Nested Stacks** and reference them in other stacks leveraging code reusability easily.
 
 > Instead of coding here, it sounds a better idea have a dedicated repository to demonstrate both cross-stack and nested stacks features
+
+##### Drift Detection
+
+Whenever a resource is changed directly rather than in the CloudFormation template you've built, e.g. an Ingress Rule in a Security Group, we have a Drift scenario.
+A Drift occurs when a CloudFormation stack has changed from its original configuration and no longer matches the template which built it.
+
+A Drift is something that needs to be avoided - just think about **Disaster Recovery Scenarios** when we need to recreate our stack in another region. In case of some
+drift, we can't reproduce our stack of resources accordingly.
+
+Drift Detection can very quickly be run to determine if drift has occurred and steps can be taken to correct the issue. You can run it direclty from the Console. Plus we can leverage AWS Config to monitoring whenever a drift happens at your instrastructure.
+
+A good resource about Drift Detection is [AWS - CloudFormation Drift Detection](https://aws.amazon.com/blogs/aws/new-cloudformation-drift-detection/)
+
+> You can create a stack from its template and do some changes at the Security Group of the Application Server to play around Drift detection and remediation
