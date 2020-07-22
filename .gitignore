@@ -2,6 +2,8 @@
 .env
 /secrets
 
+wip.*.txt
+
 # Logs
 logs
 *.log

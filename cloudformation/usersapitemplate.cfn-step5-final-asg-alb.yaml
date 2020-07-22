@@ -1,0 +1,305 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: |
+  
+Parameters:
+  ServerKeyPair:
+    Type: AWS::EC2::KeyPair::KeyName
+
+  VPCId:
+    Type: AWS::EC2::VPC::Id
+
+  VPCZoneIdentifier:
+    Description: List all subnets you would like to allow your ASG to work with
+    Type: List<AWS::EC2::Subnet::Id>
+
+  InstanceType: 
+    Type: String
+    Default: t3.micro
+    AllowedValues: 
+      - t2.micro
+      - t3.nano
+      - t3.micro
+      - t3.small
+      - m1.small
+      - m1.large
+
+  RoleName:
+    Description: A role will be created and associated with the EC 2 instance, give it a name that makes sense to you
+    Type: String
+    Default: MyServerRole
+    AllowedPattern: .+
+
+  TagName:
+    Description: A Tag "Name" will be created and associated with the Launch Template 
+    Type: String
+    AllowedPattern: .+
+  
+  Stage:
+    Description: Select your environment deployment (dev / prod)
+    Type: String
+    Default: prod
+    AllowedValues:
+      - dev
+      - prod
+  
+  DesiredCapacityASG:
+    Description: Desired Capacity for ASG
+    Type: String
+
+  MinSizeASG:
+    Description: Min Size for ASG
+    Type: String
+
+  MaxSizeASG:
+    Description: Min Size for ASG
+    Type: String
+  
+
+
+Mappings:
+  RegionToAMI:
+    us-east-1:
+      AMI: ami-06ed773a6d51e1f74
+    us-east-2:
+      AMI: ami-0001dda08df1f9503
+#TODO: Add other regions
+  
+Resources:
+  ServerRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+              - ec2.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Description: String
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforAWSCodeDeploy
+        - arn:aws:iam::aws:policy/AWSCodeDeployFullAccess
+        - arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
+      RoleName: !Ref RoleName
+
+  ServerInstanceProfile:
+    Type: 'AWS::IAM::InstanceProfile'
+    Properties:
+      Roles:
+        - !Ref ServerRole
+
+  ServerPlacementGroup:
+    Type: "AWS::EC2::PlacementGroup"
+    Properties:
+      Strategy: spread
+  
+  ALBSecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: Enable secure access to the Application Load Balacer
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 3000
+          ToPort: 3000
+          CidrIp: 0.0.0.0/0
+      VpcId: !Ref VPCId
+
+  ServerSecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: Enable secure access to the web server
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          SourceSecurityGroupId: !Ref ALBSecurityGroup
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 3000
+          ToPort: 3000
+          SourceSecurityGroupId: !Ref ALBSecurityGroup
+      VpcId: !Ref VPCId
+
+  ServerLaunchTemplate:
+    Type: "AWS::EC2::LaunchTemplate"
+    Properties:
+      LaunchTemplateName: !Join ['', [!Ref TagName, 'LT']]
+      LaunchTemplateData:
+        ImageId: !FindInMap [ RegionToAMI, !Ref "AWS::Region", AMI ]
+        InstanceType: !Ref InstanceType
+        KeyName: !Ref ServerKeyPair
+        SecurityGroupIds:
+          - !Ref ServerSecurityGroup
+        Placement: 
+          GroupName: !Ref ServerPlacementGroup
+        TagSpecifications:
+          - ResourceType: instance
+            Tags:
+            - Key: Name
+              Value: !Ref TagName
+            - Key: Stage
+              Value: !Ref Stage
+          - ResourceType: volume
+            Tags:
+            - Key: Name
+              Value: !Ref TagName
+            - Key: Stage
+              Value: !Ref Stage
+
+        IamInstanceProfile: 
+          Name: !Ref ServerInstanceProfile
+        UserData: !Base64 |
+          #!/bin/bash -xe
+
+          ## Code Deploy Agent Bootstrap Script##
+
+          exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
+
+          function installdep(){
+
+            yum install -y ruby jq
+          }
+
+          function execute(){
+            
+            wget https://aws-codedeploy-${REGION}.s3.amazonaws.com/latest/install
+            chmod +x ./install
+
+            if ./install auto; then
+              echo "Instalation completed"
+              exit 0
+            else
+              echo "Instalation script failed, please investigate"
+              rm -f /install
+              exit 1
+            fi
+          }
+
+          installdep
+          REGION=$(curl -s 169.254.169.254/latest/dynamic/instance-identity/document | jq -r ".region")
+          execute
+
+  ServerTargetGroup:
+    Type: "AWS::ElasticLoadBalancingV2::TargetGroup"
+    Properties:
+      TargetType: instance
+      Port: 80
+      Protocol: HTTP
+      VpcId: !Ref VPCId
+      HealthCheckEnabled: true
+      HealthCheckIntervalSeconds: 30
+      HealthCheckPath: /healthcheck
+      HealthCheckPort: '3000'
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 5
+      UnhealthyThresholdCount: 2
+  
+  HTTPlistener:
+   Type: "AWS::ElasticLoadBalancingV2::Listener"
+   Properties:
+     DefaultActions:
+      - Type: "forward"
+        TargetGroupArn: !Ref ServerTargetGroup
+     LoadBalancerArn: !Ref ServerALB
+     Port: 80
+     Protocol: HTTP
+
+  ServerALB:
+    Type: "AWS::ElasticLoadBalancingV2::LoadBalancer"
+    Properties:
+      Name: ServerALB
+      Type: application
+      IpAddressType: ipv4
+      Scheme: internet-facing      
+      SecurityGroups:
+        - !Ref ALBSecurityGroup
+      Subnets: !Ref VPCZoneIdentifier
+
+  ServerASG:
+    Type: "AWS::AutoScaling::AutoScalingGroup"
+    Properties:
+      AutoScalingGroupName: ServerASG
+      DesiredCapacity: !Ref DesiredCapacityASG
+      LaunchTemplate: 
+        LaunchTemplateId: !Ref ServerLaunchTemplate
+        Version: !GetAtt ServerLaunchTemplate.LatestVersionNumber
+      MaxSize: !Ref MaxSizeASG
+      MinSize: !Ref MinSizeASG
+      # PlacementGroup: String - Its not necessary since we already done it in LaunchTemplate
+      HealthCheckType: ELB
+      HealthCheckGracePeriod: 300
+      VPCZoneIdentifier: !Ref VPCZoneIdentifier
+      TargetGroupARNs: 
+        - !Ref ServerTargetGroup
+
+  ScaleOUTPolicy:
+    Type: "AWS::AutoScaling::ScalingPolicy"
+    Properties:
+      AdjustmentType: ChangeInCapacity
+      AutoScalingGroupName: !Ref ServerASG
+      Cooldown: '300'
+      ScalingAdjustment: 1
+
+  ScaleINPolicy:
+    Type: "AWS::AutoScaling::ScalingPolicy"
+    Properties:
+      AdjustmentType: ChangeInCapacity
+      AutoScalingGroupName: !Ref ServerASG
+      Cooldown: '180'
+      ScalingAdjustment: -1
+
+  HighCPUAlarm:
+    Type: "AWS::CloudWatch::Alarm"
+    Properties:
+      AlarmName: High CPU
+      Namespace: AWS/EC2
+      MetricName: CPUUtilization
+      Dimensions:
+      - Name: AutoScalingGroupName
+        Value:
+          Ref: ServerASG
+      Statistic: Average
+      Period: 300
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Threshold: 70
+      EvaluationPeriods: 1
+      AlarmDescription: Alarm if CPU too high
+      AlarmActions:
+      - Ref: ScaleOUTPolicy
+      
+  LowCPUAlarm:
+    Type: "AWS::CloudWatch::Alarm"
+    Properties:
+      AlarmName: Low CPU
+      Namespace: AWS/EC2
+      MetricName: CPUUtilization
+      Dimensions:
+      - Name: AutoScalingGroupName
+        Value:
+          Ref: ServerASG
+      Statistic: Average
+      Period: 300
+      ComparisonOperator: LessThanOrEqualToThreshold
+      Threshold: 50
+      EvaluationPeriods: 1
+      AlarmDescription: Alarm if CPU too low
+      AlarmActions:
+      - Ref: ScaleINPolicy
+
+Outputs:
+  ALBDNS:
+    Description: DNS Name for the Application Load Balancer
+    Value: 
+      !Join 
+        - ''
+        - ['https://', !GetAtt ServerALB.DNSName]

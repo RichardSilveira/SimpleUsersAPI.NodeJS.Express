@@ -7,19 +7,15 @@ A zero to master API made in Node.js, Express, MongoDb, and AWS.
 - [x] Secure the API (Authentication and Authorization concerns)
 - [X] Research and apply good practices on top of a NodeJS Express API 
 - [x] ~~Apply some resilience layer on top of database connection (maybe using some sort of circuit breaker)~~*¹
-- [ ] (Optional) Create a UI for the API before the migration to AWS to test some integrations in a real-world scenario, (eg. CORS, Firebase Authentication)
-- [X] Migrate the MongoDB workload to AWS, setting up a Multi AZ infrastructure to provide High Availability
+- [X] Migrate the MongoDB workload to AWS, setting up a Multi-AZ infrastructure to provide High Availability
 - [x] Configure an OpenAPI Specification work environment
 - [x] Migrate the Users' microservice to AWS in smalls Linux Machines
 - [x] Configure Continuous Deployment with AWS CodeDeploy
-- [x] Set up a Fault Tolerant environment for the API, by using at least 3 AZ in a Region/VPC (ELB)  
+- [x] Set up a High Available and Fault-Tolerant environment for the API, by using at least 3 AZ in a Region/VPC (ELB) 
 - [x] Integrate CodeDeploy Blue/Green Deployment with Auto-Scaling and Application Load Balancer
 - [x] Set up Observability in the application at general, using AWS X-Ray, CloudTrail, VPC Flow Logs, and (maybe) ELK Stack.
-- [ ] Provide infrastructure as a service by creating a CloudFormation Stack of all the stuffs
-- [ ] ~~Configure a CI/CD with Blue/Green Deployment (use Route 53 weighted routing policy) (AWS or Team City?)~~ 
-- [ ] Add a Cache layer with Redis (Write-Through or Lazy Loading strategy) - maybe before publish the API in AWS
-- [ ] Containerize the Users API microservice with Docker and update all AWS environment (using AWS Fargate) or by using ECS
-- [ ] Create a sample of how all of it can be done with Serverless in AWS with API Gateway, Lambda, DynamoDb?
+- [x] Provide infrastructure as a service by creating a CloudFormation Stack of all the stuff
+
 
 ### Simple CRUD operations for Users REST API using Express and Mongoose - *v1.0.1*
 
@@ -28,19 +24,18 @@ At this point we have a simple REST API with basic settings and CRUD operations 
 A lot of improvement needs to be done yet, we've some security vulnerabilities (eg. CSRF, CORS), some code layer separations that can be done to avoid code duplication in case of application growth (eg. code in userController) and even we can still provide a better architectural organization and separation to reach a ready-to-production stage. 
 > We will leverage microservices' concerns later on.
 
-We need to improve our REST implementation as well, to reach the level 3 of Richardson Maturity Model (RMM), and implement some OpenAPI specification in some way (eg. swagger docs).     
+We need to improve our REST implementation as well to reach level 3 of Richardson's Maturity Model (RMM), and implement some OpenAPI specification in some way (eg. swagger docs).     
  
 **Instructions:** 
-- Execute `docker-compose up -d` at root level to run `mongo` and `mongo-express` services.
+- Execute `docker-compose up -d` at the root level to run `mongo` and `mongo-express` services.
 - Then you can hit `http://localhost:8081` in your browser to all mongodb management tasks needed for this project.
 - Run the app with `npm start` =P
-> Note: There is a postman collection (with all used endpoint) at root level tha can be imported. 
+> Note: There is a postman collection (with all used endpoint) at the root level that can be imported. 
 
 ### Secure the API (Authentication and Authorization concerns) - *v2.0.0*
 
 We have a common user authentication flow leveraging JWT implementation, may be used for the production stage of small apps.
-Apply some resilience layer on top of database
-User management and authentication tasks usually comes with lots of undesirables time-efforts, and complexities, so, doesn't worth waste so much time on a sample of implementation of it, it's always a good idea we consider an "Authentication as a Service" Providers like Auth0, Firebase, AWS Cognito and read their docs, this way we can focus on our business goals.
+Apply some resilience layer on top of database User management and authentication tasks usually comes with lots of undesirables time-efforts, and complexities, so, doesn't worth waste so much time on a sample of implementation of it, it's always a good idea we consider an "Authentication as a Service" Providers like Auth0, Firebase, AWS Cognito and read their docs, this way we can focus on our business goals.
 > But a solid understanding of OAuth2 and OpenID specification will be so helpful in your life...
  
 **Instructions:**
@@ -54,7 +49,7 @@ How it is a huge topic, I split it up to some releases.
 
 #### Asynchronous methods and REST - *v3.0.0*
 
-How Node.js is a single threaded framework that works on top of the delegation of tasks to the `Event Loop` 
+How Node.js is a single-threaded framework that works on top of the delegation of tasks to the `Event Loop` 
 we need to take care about our synchronous operations (eg. API, Database Calls) to avoid blocking of our app, 
 so weed to leverage asynchronous methods as soon as possible. 
 Therefore we're invoking all `Mongoose`, and `bcrypt` methods async available now 
@@ -64,7 +59,7 @@ We still need to work in a Cluster way and forking process, leveraging the numbe
 
 We can consider this API now REST level 2 of RMM, we are properly representing resources and working with HTTP Status Codes, so at this point, we've a solid API that can work fine inside an organization, 
 **but** if your goal is to build a public API we need to think about a way to make our API self-documenting and provides a solid response format across the entire API, 
-and is exactly at this points that the level 3 of RMM solves our problems, introducing the concept of `Hypermedia` and `Mime Types`.
+and is exactly at this point that level 3 of RMM solves our problems, introducing the concept of `Hypermedia` and `Mime Types`.
 
 We need to work with an OpenApi spec and still talking about REST APIs, providing a cache response layer too.
 
@@ -107,7 +102,7 @@ To help us which this task, we need to use a **Node Process Manager**, the most 
 `PM 2` will fork process according to new requests are coming X host server capacity, besides it will 
 handle restarts, errors, monitoring, among other tasks.
 
-If we need, `PM 2` will handle some stuffs like deploy in production directly in the server destination host, 
+If we need, `PM 2` will handle some stuff like deploy in production directly in the server destination host, 
 but I prefer to use `PM 2` limited to cluster management responsibilities, one reason is that working with AWS, 
 the deployments using EC2 hosts is faster (and well-organized) through "Golden AMI" strategy, this way we've 
 the `PM 2` package installed globally and a symlink to it at the project level.
@@ -122,7 +117,7 @@ I'll reorganize the database later in some kind of repository of a hexagonal arc
 
 **Instructions:**
 
-Install `pm2` package globally and create a `npm link` to it in this project.
+Install `pm2` package globally and create an `npm link` to it in this project.
 
 Notice that `npm start` script will now run `pm2 start ./pm2.config.js` and 
 I made a choice to still use `nodemon` for development, so I created a new npm script `dev` for it. 
@@ -144,11 +139,8 @@ is killed eg. Db connections.
 
 #### Final Notes
 
-We're still using `console.log` for logging, but how it's a blocking code, we need to change it to a 
-non-blocking library like `Winston` with some kind of correlation requests strategy, 
-besides `Winston` has great capabilities to integrate with others APM solutions through the idea of `transports`, 
-and `transformations` operations we may ended up redoing some work when integrating our logging strategy 
-with our final APM solution and Cloud Provider tools for logging.
+We're still using `console.log` for logging, but how it's a blocking code, we need to change it to a non-blocking library like `Winston` with some kind of correlation requests strategy, 
+besides `Winston` has great capabilities to integrate with others APM solutions through the idea of `transports`, and `transformations` operations we may ended up redoing some work when integrating our logging strategy with our final APM solution and Cloud Provider tools for logging.
 
 AWS offers great solutions for logging, Azure has its own solutions too, and so on. 
 Plus, in some cases, we may still need a third-party APM solution like ElasticSearch APM, Dynatrace, Datadog among others.
@@ -162,7 +154,7 @@ on the architecture itself.
 
 There is no need for us to handle such thing, mongoose take care of it already, you may adjust some advanced options though
 
-### Migrate the MongoDB workload to AWS, setting up a Multi AZ infrastructure to provide High Availability
+### Migrate the MongoDB workload to AWS, setting up a Multi-AZ infrastructure to provide High Availability
 
 Prefer moving towards a fully managed service for "ready-to-production" databases, AWS does not offer 
 a service like this for MongoDB, and the most popular way to achieve this in AWS today is through **MongoDB Atlas**.
@@ -181,7 +173,7 @@ The estimated price for this 3-node replica set is **57 USD per month**, despite
 
 - **Atlas X AWS DocumentDB** - AWS DocumentDB is a MongoDB-compatible fully managed Database-as-a-service product, but the initial costs are so high, that won't worth compare it, it's a product for Big Data solutions. I'm just pointing it here because of the MongoDB compatibilities.  
 
-- **Atlas X Amazon Aurora Serverless** - If you're willing to go with `sequelize` relational ORM, Amazon Aurora is your best option, mainly for early stages projects or MVPs that you don't know your workload yet. You'll have a fully managed and high available database with serverless pricing model, it means in short terms you'll pay for resources that are consumed while your DB is active only, not for underutilized databases hosts provisioned that needs to be up and running all the time. 
+- **Atlas X Amazon Aurora Serverless** - If you're willing to go with `sequelize` relational ORM, Amazon Aurora is your best option, mainly for early stages projects or MVPs that you don't know your workload yet. You'll have a fully managed and high available database with a serverless pricing model, it means in short terms you'll pay for resources that are consumed while your DB is active only, not for underutilized databases hosts provisioned that needs to be up and running all the time. 
 Plus, after some evolving of your solution and knowledge of your workload, you can decrease your costs by purchasing Reserved Instances.
 
 - **Atlas X Custom MongoDB cluster** - You may build your Replica Set with minimal effort by using a `CloudFormation` template, AWS offers a good one also you can find great options at the community, including `Terraform` templates, plus you can use a MongoDB Certified by Bitnami AMI as a host instead of a fresh EC2 in these templates. Optionally you can set up an AWS Backup on your EC 2 hosts, and then you may update the `CloudFormation` templates that you've used if it is not already included.
@@ -214,7 +206,7 @@ in a single AWS EC2 instance.
 
 Launch your ec2, install everything needed and copy your app to it, thus, ensure your app is up and running.
 
-You may create a _public_ directory at root level with `mkdir -m777 public` to be able to copy files from your machine with `scp` command using 
+You may create a _public_ directory at the root level with `mkdir -m777 public` to be able to copy files from your machine with `scp` command using 
 a non-root user like so `scp -i "MyKeyPair.pem" /path/SampleFile.txt ec2-user@ec2-54-56-251-246.compute-1.amazonaws.com:public/`
 
 > Tip: Prefer using an Amazon Linux 2 AMI to launch your EC2
@@ -222,7 +214,7 @@ a non-root user like so `scp -i "MyKeyPair.pem" /path/SampleFile.txt ec2-user@ec
 >
 >> Create a resource role for your EC 2 (later we'll add some policies to it)
 > 
->> For this kind of apps I like to use general purpose t3 instance family (`micro`, to be more specific), 
+>> For this kind of apps I like to use general-purpose t3 instance family (`micro`, to be more specific), 
 >because it´s cheaper but network-efficient, and burstable.
 
 
@@ -231,8 +223,7 @@ a non-root user like so `scp -i "MyKeyPair.pem" /path/SampleFile.txt ec2-user@ec
 Imagine now if you need to recreate your EC2, think about everything you'll need to install and settings up again. Plus, imagine all of it being done whenever a new EC2 is triggered by an Auto Scaling activity _by running tons of scripts in `UserData` section_.
 Think about how long it takes to create a new EC2 instance...
 
-The proper way to handle it is by a strategy called **Golden AMI** that consists of a 
-prebuilt application stored inside an AMI to save time whenever a new instances needs to be provisioned.
+The proper way to handle it is by a strategy called **Golden AMI** that consists of a prebuilt application stored inside an AMI to save time whenever a new instance needs to be provisioned.
 
 To save your time I've created a Golden AMI for Node.js apps, [1-Click Ready Node.js LTS on Amazon Linux 2](https://aws.amazon.com/marketplace/pp/B08B7NBGN6)
 by using this AMI you'll have a "ready-to-production" Node.js server already configured.
@@ -254,11 +245,10 @@ weekly, it's more about monthly updates, also, some packages as `helmet` - _a pa
 If you're thinking that I'm getting crazy, just notice that `pm2` is usually installed as global _(check their docs and google it)_, so
 packages like `convict`, `cors`, or even `helmet` can't be really shared across our apps in the same way as `pm2` does?
 
-**That is a polemic thread, there are pros and cons here**, I'm just point it out as something to be considered, personally 
-I like to have `pm2`, and `helmet` _for **security/compliance** reasons_ as global and the others as local.
+**That is a polemic thread, there are pros and cons here** I'm just pointing out as something to be considered, personally I like to have `pm2`, and `helmet` _for **security/compliance** reasons_ as global and the others as local.
 
 > **TL;DR:** You may have **cost savings** by moving some of your local packages as global because you'll decrease the overall deployment time of your app, 
->this way you can update the ASG `scale out` policy to be executed whenever it reaches 85% of `CPU Utilization`, instead of 70% as an example.
+>this way you can update the ASG `scale-out` policy to be executed whenever it reaches 85% of `CPU Utilization`, instead of 70% as an example.
 
 
 ### Configure Continuous Deployment with AWS CodeDeploy - *v6.0.0*
@@ -275,7 +265,7 @@ AWS CodeDeploy is a powerful service for automating deployments to Amazon EC2, A
 However, to have a CodeDeploy environment up and running locally is not so trivial, at least until now! :beers:
 
 <img align="left" width="100" height="100" src="https://awsmarketplace-publicassets.s3.amazonaws.com/codedeploy-docker.png"> I've created a docker image with an `AmazonLinux 2` instance on it along with the `CodeDeploy Agent` _(and other stuff)_, 
-all instructions needed can be cheked at: [richardsilveira/amazonlinux2-codedeploy](https://hub.docker.com/repository/docker/richardsilveira/amazonlinux2-codedeploy)
+all instructions needed can be checked at: [richardsilveira/amazonlinux2-codedeploy](https://hub.docker.com/repository/docker/richardsilveira/amazonlinux2-codedeploy)
 *Note: Follow the instructions that I've prepared there and take a deeper look at my `appspec.yml` and the `scripts` files in this repository.*
 
 #### Points to note
@@ -291,8 +281,7 @@ and attach to it the policies managed by AWS `AWSCodeDeployRole`, `AutoScalingFu
 ##### Tagging
 
 Tag your EC2 instances properly will help you in so many aspects, about CodeDeploy I always try to have two Deployment Groups for a single Application
-like so: _ProductionInstances-SingleMachine_ / _ProductionInstances_ and tagging my instances 
-help my here by letting CodeDeploy identify them by theirs tags.
+like so: _ProductionInstances-SingleMachine_ / _ProductionInstances_ and tagging my instances help me by letting CodeDeploy identify them by tags.
 
 
 ##### Discussion - CodeDeploy agent installation in UserData Scripts X Golden AMI
@@ -306,9 +295,9 @@ reduction at the deployment time, thus, it is not a so bad practice.
 **Install script:** [EC2 User Data to Install the Code Deploy Agent](https://gist.github.com/RichardSilveira/376d863bb3e87fbf3b901eafb2a89898)
 
 
-#### Set up a Fault Tolerant environment for the API, by using at least 3 AZ in a Region/VPC (ELB) - *v7.0.0*
+#### Set up a High Available and Fault-Tolerant environment for the API, by using at least 3 AZ in a Region/VPC (ELB) - *v7.0.0*
 
-We'll build an elastic and high available environment in AWS like in the image bellow, but instead of two AZ, try to work with 3 AZ at minimum always, it's a common approach/best practice strategy for many scenarios about infrastructure scaling.  
+We'll build an elastic and high available environment in AWS like in the image bellow, but instead of two AZ, try to work with at least 3 AZ, it's a common approach/best practice strategy for many scenarios about infrastructure scaling.  
 
 ![asg-elb-diagram](./public/asg-elb-diagram.png)
 
@@ -317,7 +306,7 @@ How I don't want you bored I'll move fast through the key points of ASG + ELB at
 
 ##### ELB - Target Groups
 
-- You can go with the almost defaults settings. Also, you'll need to use `/healthcheck` for the `Health check path`
+- You can go with the almost default settings. Also, you'll need to use `/healthcheck` for the `Health check path`
  and override the `Port` to use `3000` instead of the default `80` accordingly what was made in _Health Check and Graceful Shutdown_ section)
 
 
@@ -327,11 +316,11 @@ How I don't want you bored I'll move fast through the key points of ASG + ELB at
 
 - Select at least three Availability Zones for your Load Balancer, plus, you must use them in your Auto Scaling later on.
 
-- In your Security Group settings, enable Port `80` and `3000` (the healthcheck server) from the internet _(0.0.0.0/0 and ::/0 ipv4 and ipv6 CIDRs)_ in `Inbound rules`.
+- In your Security Group settings, enable Port `80` and `3000` (the health check server) from the internet _(0.0.0.0/0 and ::/0 ipv4 and ipv6 CIDRs)_ in `Inbound rules`.
 
 - Update the `Inbound rules` of the Security Group associated with your EC2 to allows ONLY HTTP traffic (port 80) coming from this Security Group you're using in ELB. 
 
-- You may enable AWS WAF (Web Aapplication Firewall) to protect your website from common attack techniques like SQL injection and Cross-Site Scripting (XSS)
+- You may enable AWS WAF (Web Application Firewall) to protect your website from common attack techniques like SQL injection and Cross-Site Scripting (XSS)
 
 - You may enable AWS Config for compliance (you can define rules about AWS resource configurations and AWS Config will helps you to evaluate and take actions about it)
 
@@ -343,9 +332,9 @@ By using this AMI you'll have a "ready-to-production" Node.js server already con
 
 - You must select the Security Group you've created for the EC 2 _(not that one for ALB)_
 
-- Tag your instances properly here _(I like to use `ProductName` and `Stage` tags)_.
+- Tag your instances properly here _(I like to use `Name` and `Stage` tags)_.
 
-- Select a **Placement Group since beginning of your project**, for Startups and small project at early stages is common to use the `Spread` Placement Group, 
+- Select a **Placement Group since the beginning of your project**, for Startups and small project at early stages is common to use the `Spread` Placement Group, 
 for large apps, `Partition`, and `Cluster` strategy for Big Data/Machine Learning batch processes because of low network latency and high network throughput.
 > It's a summarized and opinionated point of view, I recommend a deep view of Placement Groups and how they work.
 
@@ -356,7 +345,7 @@ therefore, at `User data` section use the script as follows: [EC2 User Data to I
 
 - Select the same AZ that you have selected in ALB settings.
 
-- For `Healh Check Type` select `ELB`.
+- For `Health Check Type` select `ELB`.
 
 - Create a Scale-out and a Scale-in policy, to add and remove instances accordingly some CloudWatch threshold, e.g. CPU 
 _(for memory you'll need to install the Cloudwatch Agent)_
@@ -371,7 +360,7 @@ at lunch-time, its a good idea to scale out some extra machines to handle the in
 #### Integrate CodeDeploy Blue/Green Deployment with Auto-Scaling and Application Load Balancer - *v8.0.0*
 
 You've already done the hard work at "Configure Continuous Deployment with AWS CodeDeploy" section _(at least you've read about it)_,
-now you'll just update some settings in order to deploy your application through a "Blue/Green" deployment strategy.
+now you'll just update some settings to deploy your application through a "Blue/Green" deployment strategy.
 
 > Don't forget to test your deployment local with Docker with: [richardsilveira/amazonlinux2-codedeploy](https://hub.docker.com/repository/docker/richardsilveira/amazonlinux2-codedeploy) 
 
@@ -400,12 +389,12 @@ and user requests interactions with your application.
 In order to promote observability across your microservices, the better strategy nowadays in by the adoption 
 of an APM tool such as AWS X-Ray, Elastic APM, Dynatrace, and DataDog. An APM tool provides an easy way to instrument
 your app by offering an easy-to-use SDK.
-> Instrumentation means the measure of product’s performance, diagnose errors, and to write trace information.
+> Instrumentation means the measure of the product's performance, diagnose errors, and to write trace information.
 
-> Instead of coding here, it sounds a better idea have a dedicated repository about AWS X-Ray and other about Elasticsearch
+> Instead of coding here, it sounds a better idea to have a dedicated repository about AWS X-Ray and other about Elasticsearch
 
 ##### AWS CloudTrail
-You need to trace and audit not only your application' user interactions, but everything that is changed in your AWS account.
+You need to trace and audit not only your application user interactions, but everything that is changed in your AWS account.
 To accomplish it, **AWS CloudTrail** should be your first choice. CloudTrail offers:
 * Internal monitoring of API calls being made
 * Audit changes to AWS Resources by your users
@@ -416,7 +405,7 @@ AWS CloudTrail is enabled by default and you can either create a new trail or ch
 ##### Network monitoring and VPC Flow Logs
 
 **VPC Flow Logs** is an AWS service that enables you to do network monitoring. Build a network-monitored environment in AWS
-is a must-have activity about security and compliance of your infrastructure, also, at same time is a huge topic.
+is a must-have activity about security and compliance of your infrastructure, also, at the same time is a huge topic.
 I have wrote an article about it - *published by the huge codeburst.io medium editors* - [Network monitoring with AWS VPC Flow Logs and Amazon Athena](https://codeburst.io/network-monitoring-with-aws-vpc-flow-logs-and-amazon-athena-de94969f4175).
 
 ![vpc-network-monitoring](./public/vpc-monitoring-article.png)
@@ -426,4 +415,114 @@ At this article you'll learn how to have a monitored network environment in your
 You will learn how to use and integrate AWS VPC Flow Logs, Amazon Athena, Amazon CloudWatch, and S3 to help us with analyzing networking traffic tasks, plus, to get notified for threats.
 
 
+#### Provide infrastructure as a service by creating a CloudFormation Stack of all the stuff - *v8.0.0*
 
+We've already built a highly available environment for this User API earlier at *Set up a High Available and Fault-Tolerant environment for the API* section, 
+thus we'll reproduce that environment via infrastructure-as-code by using CloudFormation.
+
+> That is another huge topic, so, I'll write some sort of How-to article about it later. For now, I'll move through the key points about CloudFormation.
+
+##### Tooling
+
+Forget about the CloudFormation Designer it's not so helpful even for beginners, a better option is working with a good tooling setup instead.
+
+I'm a big fan of IntelliJ IDEA's family and don't like so much of VSCode, but its ability and popularity in terms of extension can be awesome sometimes and that is the case about CloudFormation template building.
+
+AWS created a **Linter** wich validates in real-time the issues in our CloudFormation YAML/JSON files. This way you can catch errors in your template while you're creating it. Also, you can use it as a pre-commit hook: [AWS cfn-lint](https://aws.amazon.com/blogs/mt/git-pre-commit-validation-of-aws-cloudformation-templates-with-cfn-lint/)
+
+Firstly, install pip `pip install cfn-lint`, then install the [VSCode extension](https://marketplace.visualstudio.com/items?itemName=kddejong.vscode-cfn-lint).
+
+There are many options about code-completion in CloudFormation templates and despite the fact that is not so popular, I liked a lot of the [CloudFormation YAML Snippets for VS Code](https://marketplace.visualstudio.com/items?itemName=dsteenman.cloudformation-yaml-snippets).
+
+![CloudFormation YAML Snippets for VS Code](./public/extension-vscode-autocompletion.gif)
+
+##### Planning
+
+**Write down every resource** that you need to add to your Stack before building the template and build it in **baby steps** - That's it!
+> Deploy your CloudFormation template at the end of each step.
+
+I've build this template through 6 steps, take a look at each of them for a better understanding.
+
+- [step1-ec2instance](cloudformation/usersapitemplate-step1-ec2instance.cfn.yaml)
+- [step2-ec2-iam-codedployenabled](cloudformation/usersapitemplate-step2-ec2-iam-codedployenabled.cfn.yaml)
+- [step3-launchtemplate](cloudformation/usersapitemplate-step3-launchtemplate.cfn.yaml)
+- [step4-asg](cloudformation/usersapitemplate.cfn-step4-asg.yaml)
+- [step5-final-asg-alb](cloudformation/usersapitemplate.cfn-step5-final-asg-alb.yaml)
+
+- [final-step](cloudformation/usersapitemplate.cfn.yaml)
+> Extra step to add all mappings needed, parameters descriptions, typos, and so on.
+
+##### Updating Stack and protecting a resource from being deleted
+
+**Stack Policy** should be part of your daily-basis tasks while working with CloudFormation, protecting your stacks against unintentional resource updates/deletions and not-authorized template updates *- plus, don't forget the principle of least privilege.*
+
+To know more about it take a look at [Prevent updates to stack resources](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/protect-stack-resources.html)
+
+```JSON
+{
+  "Statement" : [
+    {
+      "Effect" : "Allow",
+      "Action" : "Update:*",
+      "Principal": "*",
+      "Resource" : "*"
+    },
+    {
+      "Effect" : "Deny",
+      "Action" : "Update:*",
+      "Principal": "*",
+      "Resource" : "LogicalResourceId/WebServerRole"
+    }
+  ]
+}
+```
+> It's a sample of how I'm handling stack resources updates protection in our scenario.
+
+
+We must be aware of **Update Behaviors** of our stack resources to understand the downtime of your application.
+
+If you have some experience with CloudFormation you should be familiar with the [AWS resource and property types reference](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-template-resource-type-ref.html) *- if not, favorite it, I use it at every new template that I build*. For every resource property you can notice an `Update requires` field that indicates how an update at that property may affect your end-user in terms of application downtime, the values can be `Replacement`, `Some Interruption`, and `No Interruption`.
+
+Still talking about application downtime, other great allied that you can pay attention is the **Change Sets** feature. Whenever you update your Stack you can compare what is being updated, plus, if a `Replacement` of the resource is required.
+
+![CloudFormation Change Sets](./public/ChangeSets.png)
+
+##### Code Reuse
+
+CloudFormation is infrastructure as code and like in a programming language we need to leverage code reuse.
+
+There is no problem with the CloudFormation template that we build for this project. However taking a deeply look to it you'll notice there are many concerns about Networking - *VPC, Subnets*, Security - *Security Groups*, Elasticity and High Availability - *ALB, ALG* and all of it was done by one single person. In a small-to-medium company you'll probably have a Network team, an Architectural team, some Security specialist guy and the Product's teams and those separations of responsibilities can be reflected in CloudFormation through Cross-stack references. Cross-stack references let you use a layered or service-oriented architecture. Instead of including all resources in a single stack, you create related AWS resources in separate stacks; then you can refer to required resource outputs from other stacks. By restricting cross-stack references to outputs, you control the parts of a stack that are referenced by other stacks.
+
+In our scenario we could have a network stack, a stack for Elasticity with ASG + ALB included, and another for the Node.JS Application Server itself. This way each team remains focused on its specialties and goals.
+
+> To know more about CloudFormation Cross-stack references take a look at [Walkthrough: Refer to resource outputs in another AWS CloudFormation stack](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/walkthrough-crossstackref.html)
+
+There are blocks of codes in this template that in the daily-basis activities you'd repeat often like the `WebServerTargetGroup`, and `WebServerScalingGroup`, plus, always using them together, changing other settings like Scaling policies. Those kinds of codes you must group in **Nested Stacks** and reference them in other stacks leveraging code reusability easily.
+
+> Instead of coding here, it sounds a better idea to have a dedicated repository to demonstrate both cross-stack and nested stacks features
+
+##### Drift Detection
+
+Whenever a resource is changed directly rather than in the CloudFormation template you've built, e.g. an Ingress Rule in a Security Group, we have a Drift scenario.
+A Drift occurs when a CloudFormation stack has changed from its original configuration and no longer matches the template which built it.
+
+A Drift is something that needs to be avoided - just think about **Disaster Recovery Scenarios** when we need to recreate our stack in another region. In case of some
+drift, we can't reproduce the current state our stack of resources accordingly.
+
+Drift Detection can very quickly be run to determine if drift has occurred and steps can be taken to correct the issue. You can run it directly from the Console. Plus we can **leverage AWS Config for monitoring and notification** whenever a drift happens at your infrastructure.
+
+A good resource about Drift Detection is [AWS - CloudFormation Drift Detection](https://aws.amazon.com/blogs/aws/new-cloudformation-drift-detection/)
+
+> You can create a stack from its template and do some changes at the Security Group of the Application Server to play around Drift detection and remediation
+
+##### Final Notes
+
+There is so much to talk about CloudFormation, even only about advanced and hidden features topics, I believe that I could be never handled all of them here because it is so huge content. I'll point some of those and you may google about it.
+
+- Custom Resources
+- Continuous Delivery with CloudFormation
+- Stack Sets
+- CloudFormation Best Practices
+- Serverless Application Model
+
+But still, I've made a deep dive about CloudFormation here focused on everything you need to know to work confident with CloudFormation.
