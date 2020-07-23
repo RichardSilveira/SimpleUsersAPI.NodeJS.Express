@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { NotFoundError } = require('../lib/customerrors/applicationErrors');
 const UserSchema = require('../models/userModel');
 const { usersApiConfig } = require('../config/config');
 
@@ -17,14 +18,14 @@ exports.addUser = async (req, res) => {
 
 exports.getUsers = async (req, res) => {
   const user = await User.find({}).lean().exec();
-  if (!user) res.status(404).send();
+  if (!user) throw new NotFoundError();
 
   res.json(user);
 };
 
 exports.getUserByID = async (req, res) => {
   const user = await User.findById(req.params.userID).lean().exec();
-  if (!user) res.status(404).send();
+  if (!user) throw new NotFoundError();
 
   res.json(user);
 };
@@ -34,7 +35,7 @@ exports.updateUser = async (req, res) => {
   const user = await User.findOneAndUpdate({ _id: req.params.userID },
     req.body, { new: true, useFindAndModify: false }).exec();
 
-  if (!user) res.status(404).send();
+  if (!user) throw new NotFoundError();
 
   res.json(user);
 };

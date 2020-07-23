@@ -136,6 +136,11 @@ by checking whatever you want eg. your Db connections.
 - Graceful Shutdown - In order to have a chance to dispose of all your unmanaged resources by Node.js before your app 
 is killed eg. Db connections.
 
+#### Error Handling
+
+There are so many ways to handle errors in a Node.JS' API, here I've made a choice to work closely with Middleware and HTTP Status Codes.
+I'm just pointing it here to reinforce the importance of handling API errors, but to understand better you can start looking at the `handleError` middleware.
+
 
 #### Final Notes
 

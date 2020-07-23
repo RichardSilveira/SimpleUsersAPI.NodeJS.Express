@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const mongoose = require('mongoose');
+const { NotFoundError, BadRequestError } = require('../lib/customerrors/applicationErrors');
 const AuthUserSchema = require('../models/authUserModel');
 const { jwtConfig } = require('../config/config');
 
@@ -22,9 +23,9 @@ exports.login = async (req, res) => {
 
   const user = await AuthUser.findOne({ email }).exec();
 
-  if (!user) res.status(404).send();
+  if (!user) throw new NotFoundError();
 
-  if (!user.comparePassword(password, user.hashPassword)) res.status(401).send();
+  if (!user.comparePassword(password, user.hashPassword)) throw new BadRequestError('Password does not match');
 
   const token = jwt.sign({ _id: user._id, email: user.email, username: user.userName },
     jwtConfig.secret, { expiresIn: jwtConfig.exp }); // 5 mins

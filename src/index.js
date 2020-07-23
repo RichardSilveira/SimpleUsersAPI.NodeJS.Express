@@ -11,6 +11,8 @@ const swaggerDocument = require('../UsersAPISpecs.json');
 const {
   stage, usersApiConfig, mongodbConfig, jwtConfig,
 } = require('./config/config');
+
+const handleError = require('./middlewares/errorHandling');
 const routes = require('./routes/routes');
 const mongooseConnectionHandler = require('./lib/mongooseConnectionHandler');
 const handleSystemHealth = require('./lib/systemHealthHandler');
@@ -53,10 +55,7 @@ const v1 = express.Router();
 routes(v1);
 app.use('/v1', v1);
 
-app.use((err, req, res, next) => {
-  console.log(`An error was throw ${err}`);
-  res.status(500).send('An unexpected error has occurred'); // We can improve it by handling custom error objects
-});
+app.use(handleError);
 
 app.use(express.static('public'));// serving static files
 
